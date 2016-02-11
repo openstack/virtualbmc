@@ -11,6 +11,7 @@
 #    under the License.
 
 import argparse
+import signal
 import sys
 import xml.etree.ElementTree as ET
 
@@ -112,6 +113,11 @@ class VirtualBMC(bmc.Bmc):
            return
 
 
+def signal_handler(signal, frame):
+    print('SIGINT received, stopping the Virtual BMC...')
+    sys.exit(0)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         prog='Virtual BMC',
@@ -149,4 +155,9 @@ if __name__ == '__main__':
                       address=args.address,
                       domain_name=args.domain_name,
                       libvirt_uri=args.libvirt_uri)
+
+    # Register the signal handler
+    signal.signal(signal.SIGINT, signal_handler)
+
+    # Start the virtual BMC
     vbmc.listen()
