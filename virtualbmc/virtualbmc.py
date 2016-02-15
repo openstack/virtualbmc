@@ -107,9 +107,10 @@ class VirtualBMC(bmc.Bmc):
     def get_boot_device(self):
         with libvirt_open(self.libvirt_uri, readonly=True) as conn:
             domain = get_libvirt_domain(conn, self.domain_name)
-            parsed = ET.fromstring(domain.XMLDesc())
-            boot_devs = parsed.findall('.//os/boot')
-            boot_dev = boot_devs[0].attrib['dev']
+            boot_element = ET.fromstring(domain.XMLDesc()).find('.//os/boot')
+            boot_dev = None
+            if boot_element is not None:
+                boot_dev = boot_element.attrib.get('dev')
             return GET_BOOT_DEVICES_MAP.get(boot_dev, 0)
 
     def set_boot_device(self, bootdevice):
@@ -120,19 +121,19 @@ class VirtualBMC(bmc.Bmc):
 
         with libvirt_open(self.libvirt_uri) as conn:
             domain = get_libvirt_domain(conn, self.domain_name)
-            parsed = ET.fromstring(domain.XMLDesc())
-            os = parsed.find('os')
-            boot_list = os.findall('boot')
+            tree = ET.fromstring(domain.XMLDesc())
 
-            # Clear boot list
-            for boot_el in boot_list:
-                os.remove(boot_el)
+            for os_element in tree.findall('os'):
+                # Remove all "boot" elements
+                for boot_element in os_element.findall('boot'):
+                    os_element.remove(boot_element)
 
-            boot_el = ET.SubElement(os, 'boot')
-            boot_el.set('dev', device)
+                # Add a new boot element with the request boot device
+                boot_element = ET.SubElement(os_element, 'boot')
+                boot_element.set('dev', device)
 
             try:
-                conn.defineXML(ET.tostring(parsed))
+                conn.defineXML(ET.tostring(tree))
             except libvirt.libvirtError as e:
                 print('Failed setting the boot device to "%s" on the '
                       '"%s" domain' % (device, self.domain_name),
