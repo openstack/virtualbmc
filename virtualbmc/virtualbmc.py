@@ -155,7 +155,8 @@ class VirtualBMC(bmc.Bmc):
         try:
             with libvirt_open(self.libvirt_uri) as conn:
                 domain = get_libvirt_domain(conn, self.domain_name)
-                domain.destroy()
+                if domain.isActive():
+                    domain.destroy()
         except libvirt.libvirtError as e:
             print('Error powering off the domain "%s". Error: %s' %
                   (self.domain_name, e), file=sys.stderr)
@@ -165,7 +166,8 @@ class VirtualBMC(bmc.Bmc):
         try:
             with libvirt_open(self.libvirt_uri) as conn:
                 domain = get_libvirt_domain(conn, self.domain_name)
-                domain.create()
+                if not domain.isActive():
+                    domain.create()
         except libvirt.libvirtError as e:
             print('Error powering on the domain "%s". Error: %s' %
                   (self.domain_name, e))
