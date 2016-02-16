@@ -1,6 +1,3 @@
-# Copyright 2016 Red Hat, Inc.
-# All Rights Reserved.
-#
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
 #    a copy of the License at
@@ -13,8 +10,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-__all__ = ['exception', 'VirtualBMC', 'VirtualBMCManager']
-
 import exception
 from virtualbmc import VirtualBMC
 from virtualbmc import VirtualBMCManager
+
+__all__ = ['exception', 'VirtualBMC', 'VirtualBMCManager']

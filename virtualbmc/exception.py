@@ -13,11 +13,11 @@
 
 class VirtualBMCError(Exception):
 
-    message = None
-
     def __init__(self, message=None, **kwargs):
         if self.message and kwargs:
             self.message = self.message % kwargs
+        else:
+            self.message = message
 
         super(VirtualBMCError, self).__init__(self.message)
 

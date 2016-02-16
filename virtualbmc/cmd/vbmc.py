@@ -117,8 +117,7 @@ def main():
                 ptable.add_row([key, val])
             print(ptable)
 
-    except (exception.LibvirtConnectionOpenError,
-            exception.DomainNotFound) as e:
+    except exception.VirtualBMCError as e:
         print(e, file=sys.stderr)
         exit(1)
 

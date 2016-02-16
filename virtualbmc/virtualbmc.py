@@ -10,8 +10,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from __future__ import print_function
-
 import errno
 import os
 import signal
@@ -25,7 +23,9 @@ import pyghmi.ipmi.bmc as bmc
 from six.moves import configparser
 
 import exception
+import log
 
+LOG = log.get_logger()
 
 # Power states
 POWEROFF = 0
@@ -105,6 +105,7 @@ class VirtualBMC(bmc.Bmc):
         self.domain_name = domain_name
 
     def get_boot_device(self):
+        LOG.debug('Get boot device called for %s', self.domain_name)
         with libvirt_open(self.libvirt_uri, readonly=True) as conn:
             domain = get_libvirt_domain(conn, self.domain_name)
             boot_element = ET.fromstring(domain.XMLDesc()).find('.//os/boot')
@@ -114,9 +115,11 @@ class VirtualBMC(bmc.Bmc):
             return GET_BOOT_DEVICES_MAP.get(boot_dev, 0)
 
     def set_boot_device(self, bootdevice):
+        LOG.debug('Set boot device called for %(domain)s with boot '
+                  'device "%(bootdev)s"', {'domain': self.domain_name,
+                                           'bootdev': bootdevice})
         device = SET_BOOT_DEVICES_MAP.get(bootdevice)
         if device is None:
-            print('Uknown boot device: %s' % bootdevice)
             return 0xd5
 
         with libvirt_open(self.libvirt_uri) as conn:
@@ -135,43 +138,49 @@ class VirtualBMC(bmc.Bmc):
             try:
                 conn.defineXML(ET.tostring(tree))
             except libvirt.libvirtError as e:
-                print('Failed setting the boot device to "%s" on the '
-                      '"%s" domain' % (device, self.domain_name),
-                      file=sys.stderr)
+                LOG.error('Failed setting the boot device  %(bootdev)s for '
+                          'domain %(domain)s', {'bootdev': device,
+                                                'domain': self.domain_name})
 
     def get_power_state(self):
+        LOG.debug('Get power state called for domain %s', self.domain_name)
         try:
             with libvirt_open(self.libvirt_uri, readonly=True) as conn:
                 domain = get_libvirt_domain(conn, self.domain_name)
                 if domain.isActive():
                     return POWERON
         except libvirt.libvirtError as e:
-            print('Error getting the power state of domain "%s". '
-                  'Error: %s' % (self.domain_name, e), file=sys.stderr)
+            LOG.error('Error getting the power state of domain %(domain)s. '
+                      'Error: %(error)s', {'domain': self.domain_name,
+                                           'error': e})
             return
 
         return POWEROFF
 
     def power_off(self):
+        LOG.debug('Power off called for domain %s', self.domain_name)
         try:
             with libvirt_open(self.libvirt_uri) as conn:
                 domain = get_libvirt_domain(conn, self.domain_name)
                 if domain.isActive():
                     domain.destroy()
         except libvirt.libvirtError as e:
-            print('Error powering off the domain "%s". Error: %s' %
-                  (self.domain_name, e), file=sys.stderr)
+            LOG.error('Error powering off the domain %(domain)s. '
+                      'Error: %(error)s' % {'domain': self.domain_name,
+                                            'error': e})
             return
 
     def power_on(self):
+        LOG.debug('Power on called for domain %s', self.domain_name)
         try:
             with libvirt_open(self.libvirt_uri) as conn:
                 domain = get_libvirt_domain(conn, self.domain_name)
                 if not domain.isActive():
                     domain.create()
         except libvirt.libvirtError as e:
-            print('Error powering on the domain "%s". Error: %s' %
-                  (self.domain_name, e))
+            LOG.error('Error powering on the domain %(domain)s. '
+                      'Error: %(error)s' % {'domain': self.domain_name,
+                                            'error': e})
             return
 
 
@@ -253,21 +262,37 @@ class VirtualBMCManager(object):
         check_libvirt_connection_and_domain(
             bmc_config['libvirt_uri'], domain_name)
 
-        pidfile_path = os.path.join(domain_path, 'pid')
+        LOG.debug('Starting a Virtual BMC for domain %(domain)s with the '
+                  'following configuration options: %(config)s',
+                  {'domain': domain_name,
+                   'config': ' '.join(['%s="%s"' % (k, bmc_config[k])
+                                       for k in bmc_config])})
 
-        with daemon.DaemonContext(stderr=sys.stderr):
+        with daemon.DaemonContext(stderr=sys.stderr,
+                                  files_preserve=[LOG.handler.stream, ]):
             # FIXME(lucasagomes): pyghmi start the sockets when the
             # class is instantiated, therefore we need to create the object
             # within the daemon context
-            vbmc = VirtualBMC(**bmc_config)
+
+            try:
+                vbmc = VirtualBMC(**bmc_config)
+            except Exception as e:
+                msg = ('Error starting a Virtual BMC for domain %(domain)s. '
+                       'Error: %(error)s' % {'domain': domain_name,
+                                             'error': e})
+                LOG.error(msg)
+                raise exception.VirtualBMCError(msg)
 
             # Save the PID number
+            pidfile_path = os.path.join(domain_path, 'pid')
             with open(pidfile_path, 'w') as f:
                 f.write(str(os.getpid()))
 
+            LOG.info('Virtual BMC for domain %s started', domain_name)
             vbmc.listen()
 
     def stop(sel, domain_name):
+        LOG.debug('Stopping Virtual BMC for domain %s', domain_name)
         domain_path = os.path.join(CONFIG_PATH, domain_name)
         if not os.path.exists(domain_path):
             raise exception.DomainNotFound(domain=domain_name)
@@ -278,8 +303,10 @@ class VirtualBMCManager(object):
             with open(pidfile_path, 'r') as f:
                 pid = int(f.read())
         except IOError:
-            # LOG
-            return
+            msg = ('Error stopping the domain %s: PID file not '
+                   'found' % domain_name)
+            LOG.error(msg)
+            raise exception.VirtualBMCError(msg)
         else:
             os.remove(pidfile_path)
 
