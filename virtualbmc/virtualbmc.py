@@ -10,17 +10,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import errno
 import os
-import signal
-import shutil
-import sys
 import xml.etree.ElementTree as ET
 
-import daemon
 import libvirt
 import pyghmi.ipmi.bmc as bmc
-from six.moves import configparser
 
 import exception
 import log
@@ -30,10 +24,6 @@ LOG = log.get_logger()
 # Power states
 POWEROFF = 0
 POWERON = 1
-
-# BMC status
-RUNNING = 'running'
-DOWN = 'down'
 
 # Boot device maps
 GET_BOOT_DEVICES_MAP = {
@@ -47,10 +37,6 @@ SET_BOOT_DEVICES_MAP = {
     'hd': 'hd',
     'optical': 'cdrom',
 }
-
-
-DEFAULT_SECTION = 'VirtualBMC'
-CONFIG_PATH = os.path.join(os.path.expanduser('~'), '.vbmc')
 
 
 class libvirt_open(object):
@@ -85,14 +71,6 @@ def get_libvirt_domain(conn, domain):
 def check_libvirt_connection_and_domain(uri, domain):
     with libvirt_open(uri, readonly=True) as conn:
         get_libvirt_domain(conn, domain)
-
-
-def is_pid_running(pid):
-    try:
-        os.kill(pid, 0)
-        return True
-    except OSError:
-        return False
 
 
 class VirtualBMC(bmc.Bmc):
@@ -182,149 +160,3 @@ class VirtualBMC(bmc.Bmc):
                       'Error: %(error)s' % {'domain': self.domain_name,
                                             'error': e})
             return
-
-
-class VirtualBMCManager(object):
-
-    def _parse_config(self, domain_name):
-        config_path = os.path.join(CONFIG_PATH, domain_name, 'config')
-        if not os.path.exists(config_path):
-            raise exception.DomainNotFound(domain=domain_name)
-
-        config = configparser.ConfigParser()
-        config.read(config_path)
-
-        bmc = {}
-        for item in ('username', 'password', 'address',
-                     'domain_name', 'libvirt_uri'):
-            bmc[item] = config.get(DEFAULT_SECTION, item)
-
-        # Port needs to be int
-        bmc['port'] = int(config.get(DEFAULT_SECTION, 'port'))
-
-        return bmc
-
-    def _show(self, domain_name):
-        running = False
-        try:
-            pidfile_path = os.path.join(CONFIG_PATH, domain_name, 'pid')
-            with open(pidfile_path, 'r') as f:
-                pid = int(f.read())
-
-            running = is_pid_running(pid)
-        except IOError:
-            pass
-
-        bmc_config = self._parse_config(domain_name)
-        bmc_config['status'] = RUNNING if running else DOWN
-        return bmc_config
-
-    def add(self, username, password, port, address,
-            domain_name, libvirt_uri):
-        # Check libvirt and domain
-        check_libvirt_connection_and_domain(libvirt_uri, domain_name)
-
-        domain_path = os.path.join(CONFIG_PATH, domain_name)
-        try:
-            os.makedirs(domain_path)
-        except OSError as e:
-            if e.errno == errno.EEXIST:
-                sys.exit('Domain %s already exist' % domain_name)
-
-        config_path = os.path.join(domain_path, 'config')
-        with open(config_path, 'w') as f:
-            config = configparser.ConfigParser()
-            config.add_section(DEFAULT_SECTION)
-            config.set(DEFAULT_SECTION, 'username', username)
-            config.set(DEFAULT_SECTION, 'password', password)
-            config.set(DEFAULT_SECTION, 'port', port)
-            config.set(DEFAULT_SECTION, 'address', address)
-            config.set(DEFAULT_SECTION, 'domain_name', domain_name)
-            config.set(DEFAULT_SECTION, 'libvirt_uri', libvirt_uri)
-            config.write(f)
-
-    def delete(self, domain_name):
-        domain_path = os.path.join(CONFIG_PATH, domain_name)
-        if not os.path.exists(domain_path):
-            raise exception.DomainNotFound(domain=domain_name)
-
-        self.stop(domain_name)
-        shutil.rmtree(domain_path)
-
-    def start(self, domain_name):
-        domain_path = os.path.join(CONFIG_PATH, domain_name)
-        if not os.path.exists(domain_path):
-            raise exception.DomainNotFound(domain=domain_name)
-
-        bmc_config = self._parse_config(domain_name)
-
-        # Check libvirt and domain
-        check_libvirt_connection_and_domain(
-            bmc_config['libvirt_uri'], domain_name)
-
-        LOG.debug('Starting a Virtual BMC for domain %(domain)s with the '
-                  'following configuration options: %(config)s',
-                  {'domain': domain_name,
-                   'config': ' '.join(['%s="%s"' % (k, bmc_config[k])
-                                       for k in bmc_config])})
-
-        with daemon.DaemonContext(stderr=sys.stderr,
-                                  files_preserve=[LOG.handler.stream, ]):
-            # FIXME(lucasagomes): pyghmi start the sockets when the
-            # class is instantiated, therefore we need to create the object
-            # within the daemon context
-
-            try:
-                vbmc = VirtualBMC(**bmc_config)
-            except Exception as e:
-                msg = ('Error starting a Virtual BMC for domain %(domain)s. '
-                       'Error: %(error)s' % {'domain': domain_name,
-                                             'error': e})
-                LOG.error(msg)
-                raise exception.VirtualBMCError(msg)
-
-            # Save the PID number
-            pidfile_path = os.path.join(domain_path, 'pid')
-            with open(pidfile_path, 'w') as f:
-                f.write(str(os.getpid()))
-
-            LOG.info('Virtual BMC for domain %s started', domain_name)
-            vbmc.listen()
-
-    def stop(sel, domain_name):
-        LOG.debug('Stopping Virtual BMC for domain %s', domain_name)
-        domain_path = os.path.join(CONFIG_PATH, domain_name)
-        if not os.path.exists(domain_path):
-            raise exception.DomainNotFound(domain=domain_name)
-
-        pidfile_path = os.path.join(domain_path, 'pid')
-        pid = None
-        try:
-            with open(pidfile_path, 'r') as f:
-                pid = int(f.read())
-        except IOError:
-            msg = ('Error stopping the domain %s: PID file not '
-                   'found' % domain_name)
-            LOG.error(msg)
-            raise exception.VirtualBMCError(msg)
-        else:
-            os.remove(pidfile_path)
-
-        try:
-            os.kill(pid, signal.SIGKILL)
-        except OSError:
-            pass
-
-    def list(self):
-        bmcs = []
-        try:
-            for domain in os.listdir(CONFIG_PATH):
-                bmcs.append(self._show(domain))
-        except OSError as e:
-            if e.errno == errno.EEXIST:
-                return bmcs
-
-        return bmcs
-
-    def show(self, domain_name):
-        return self._show(domain_name)
