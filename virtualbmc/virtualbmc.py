@@ -18,6 +18,7 @@ import pyghmi.ipmi.bmc as bmc
 
 import exception
 import log
+import utils
 
 LOG = log.get_logger()
 
@@ -39,40 +40,6 @@ SET_BOOT_DEVICES_MAP = {
 }
 
 
-class libvirt_open(object):
-
-    def __init__(self, uri, readonly=False):
-        self.uri = uri
-        self.readonly = readonly
-
-    def __enter__(self):
-        try:
-            if self.readonly:
-                self.conn = libvirt.openReadOnly(self.uri)
-            else:
-                self.conn = libvirt.open(self.uri)
-
-            return self.conn
-
-        except libvirt.libvirtError as e:
-            raise exception.LibvirtConnectionOpenError(uri=self.uri, error=e)
-
-    def __exit__(self, type, value, traceback):
-        self.conn.close()
-
-
-def get_libvirt_domain(conn, domain):
-    try:
-        return conn.lookupByName(domain)
-    except libvirt.libvirtError:
-        raise exception.DomainNotFound(domain=domain)
-
-
-def check_libvirt_connection_and_domain(uri, domain):
-    with libvirt_open(uri, readonly=True) as conn:
-        get_libvirt_domain(conn, domain)
-
-
 class VirtualBMC(bmc.Bmc):
 
     def __init__(self, username, password, port, address,
@@ -84,8 +51,8 @@ class VirtualBMC(bmc.Bmc):
 
     def get_boot_device(self):
         LOG.debug('Get boot device called for %s', self.domain_name)
-        with libvirt_open(self.libvirt_uri, readonly=True) as conn:
-            domain = get_libvirt_domain(conn, self.domain_name)
+        with utils.libvirt_open(self.libvirt_uri, readonly=True) as conn:
+            domain = utils.get_libvirt_domain(conn, self.domain_name)
             boot_element = ET.fromstring(domain.XMLDesc()).find('.//os/boot')
             boot_dev = None
             if boot_element is not None:
@@ -100,8 +67,8 @@ class VirtualBMC(bmc.Bmc):
         if device is None:
             return 0xd5
 
-        with libvirt_open(self.libvirt_uri) as conn:
-            domain = get_libvirt_domain(conn, self.domain_name)
+        with utils.libvirt_open(self.libvirt_uri) as conn:
+            domain = utils.get_libvirt_domain(conn, self.domain_name)
             tree = ET.fromstring(domain.XMLDesc())
 
             for os_element in tree.findall('os'):
@@ -123,8 +90,8 @@ class VirtualBMC(bmc.Bmc):
     def get_power_state(self):
         LOG.debug('Get power state called for domain %s', self.domain_name)
         try:
-            with libvirt_open(self.libvirt_uri, readonly=True) as conn:
-                domain = get_libvirt_domain(conn, self.domain_name)
+            with utils.libvirt_open(self.libvirt_uri, readonly=True) as conn:
+                domain = utils.get_libvirt_domain(conn, self.domain_name)
                 if domain.isActive():
                     return POWERON
         except libvirt.libvirtError as e:
@@ -138,8 +105,8 @@ class VirtualBMC(bmc.Bmc):
     def power_off(self):
         LOG.debug('Power off called for domain %s', self.domain_name)
         try:
-            with libvirt_open(self.libvirt_uri) as conn:
-                domain = get_libvirt_domain(conn, self.domain_name)
+            with utils.libvirt_open(self.libvirt_uri) as conn:
+                domain = utils.get_libvirt_domain(conn, self.domain_name)
                 if domain.isActive():
                     domain.destroy()
         except libvirt.libvirtError as e:
@@ -151,8 +118,8 @@ class VirtualBMC(bmc.Bmc):
     def power_on(self):
         LOG.debug('Power on called for domain %s', self.domain_name)
         try:
-            with libvirt_open(self.libvirt_uri) as conn:
-                domain = get_libvirt_domain(conn, self.domain_name)
+            with utils.libvirt_open(self.libvirt_uri) as conn:
+                domain = utils.get_libvirt_domain(conn, self.domain_name)
                 if not domain.isActive():
                     domain.create()
         except libvirt.libvirtError as e:

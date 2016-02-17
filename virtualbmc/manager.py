@@ -21,7 +21,8 @@ from six.moves import configparser
 
 import exception
 import log
-import virtualbmc
+from virtualbmc import VirtualBMC
+import utils
 
 LOG = log.get_logger()
 
@@ -31,14 +32,6 @@ DOWN = 'down'
 
 DEFAULT_SECTION = 'VirtualBMC'
 CONFIG_PATH = os.path.join(os.path.expanduser('~'), '.vbmc')
-
-
-def is_pid_running(pid):
-    try:
-        os.kill(pid, 0)
-        return True
-    except OSError:
-        return False
 
 
 class VirtualBMCManager(object):
@@ -68,7 +61,7 @@ class VirtualBMCManager(object):
             with open(pidfile_path, 'r') as f:
                 pid = int(f.read())
 
-            running = is_pid_running(pid)
+            running = utils.is_pid_running(pid)
         except IOError:
             pass
 
@@ -78,8 +71,7 @@ class VirtualBMCManager(object):
 
     def add(self, username, password, port, address,
             domain_name, libvirt_uri):
-        virtualbmc.check_libvirt_connection_and_domain(
-            libvirt_uri, domain_name)
+        utils.check_libvirt_connection_and_domain(libvirt_uri, domain_name)
 
         domain_path = os.path.join(CONFIG_PATH, domain_name)
         try:
@@ -119,7 +111,7 @@ class VirtualBMCManager(object):
 
         bmc_config = self._parse_config(domain_name)
 
-        virtualbmc.check_libvirt_connection_and_domain(
+        utils.check_libvirt_connection_and_domain(
             bmc_config['libvirt_uri'], domain_name)
 
         LOG.debug('Starting a Virtual BMC for domain %(domain)s with the '
@@ -135,7 +127,7 @@ class VirtualBMCManager(object):
             # within the daemon context
 
             try:
-                vbmc = virtualbmc.VirtualBMC(**bmc_config)
+                vbmc = VirtualBMC(**bmc_config)
             except Exception as e:
                 msg = ('Error starting a Virtual BMC for domain %(domain)s. '
                        'Error: %(error)s' % {'domain': domain_name,
