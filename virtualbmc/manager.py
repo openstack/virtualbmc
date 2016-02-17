@@ -31,13 +31,12 @@ RUNNING = 'running'
 DOWN = 'down'
 
 DEFAULT_SECTION = 'VirtualBMC'
-CONFIG_PATH = os.path.join(os.path.expanduser('~'), '.vbmc')
 
 
 class VirtualBMCManager(object):
 
     def _parse_config(self, domain_name):
-        config_path = os.path.join(CONFIG_PATH, domain_name, 'config')
+        config_path = os.path.join(utils.CONFIG_PATH, domain_name, 'config')
         if not os.path.exists(config_path):
             raise exception.DomainNotFound(domain=domain_name)
 
@@ -57,7 +56,7 @@ class VirtualBMCManager(object):
     def _show(self, domain_name):
         running = False
         try:
-            pidfile_path = os.path.join(CONFIG_PATH, domain_name, 'pid')
+            pidfile_path = os.path.join(utils.CONFIG_PATH, domain_name, 'pid')
             with open(pidfile_path, 'r') as f:
                 pid = int(f.read())
 
@@ -73,7 +72,7 @@ class VirtualBMCManager(object):
             domain_name, libvirt_uri):
         utils.check_libvirt_connection_and_domain(libvirt_uri, domain_name)
 
-        domain_path = os.path.join(CONFIG_PATH, domain_name)
+        domain_path = os.path.join(utils.CONFIG_PATH, domain_name)
         try:
             os.makedirs(domain_path)
         except OSError as e:
@@ -93,7 +92,7 @@ class VirtualBMCManager(object):
             config.write(f)
 
     def delete(self, domain_name):
-        domain_path = os.path.join(CONFIG_PATH, domain_name)
+        domain_path = os.path.join(utils.CONFIG_PATH, domain_name)
         if not os.path.exists(domain_path):
             raise exception.DomainNotFound(domain=domain_name)
 
@@ -105,7 +104,7 @@ class VirtualBMCManager(object):
         shutil.rmtree(domain_path)
 
     def start(self, domain_name):
-        domain_path = os.path.join(CONFIG_PATH, domain_name)
+        domain_path = os.path.join(utils.CONFIG_PATH, domain_name)
         if not os.path.exists(domain_path):
             raise exception.DomainNotFound(domain=domain_name)
 
@@ -145,7 +144,7 @@ class VirtualBMCManager(object):
 
     def stop(sel, domain_name):
         LOG.debug('Stopping Virtual BMC for domain %s', domain_name)
-        domain_path = os.path.join(CONFIG_PATH, domain_name)
+        domain_path = os.path.join(utils.CONFIG_PATH, domain_name)
         if not os.path.exists(domain_path):
             raise exception.DomainNotFound(domain=domain_name)
 
@@ -169,8 +168,9 @@ class VirtualBMCManager(object):
     def list(self):
         bmcs = []
         try:
-            for domain in os.listdir(CONFIG_PATH):
-                bmcs.append(self._show(domain))
+            for domain in os.listdir(utils.CONFIG_PATH):
+                if os.path.isdir(os.path.join(utils.CONFIG_PATH, domain)):
+                    bmcs.append(self._show(domain))
         except OSError as e:
             if e.errno == errno.EEXIST:
                 return bmcs

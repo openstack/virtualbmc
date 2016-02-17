@@ -10,9 +10,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import os
 import libvirt
 
 import exception
+
+CONFIG_PATH = os.path.join(os.path.expanduser('~'), '.vbmc')
 
 
 class libvirt_open(object):
@@ -57,3 +60,9 @@ def is_pid_running(pid):
         return False
 
 
+def str2bool(string):
+    lower = string.lower()
+    if lower not in ('true', 'false'):
+        raise ValueError('Value "%s" can not be interpreted as '
+                         'boolean' % string)
+    return lower == 'true'

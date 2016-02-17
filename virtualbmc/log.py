@@ -14,6 +14,8 @@ import logging
 import errno
 import sys
 
+import config
+
 __all__ = ['get_logger']
 
 DEFAULT_LOG_FORMAT = ('%(asctime)s.%(msecs)03d %(process)d %(levelname)s '
@@ -21,8 +23,9 @@ DEFAULT_LOG_FORMAT = ('%(asctime)s.%(msecs)03d %(process)d %(levelname)s '
 LOGGER = None
 
 
-class Logger(logging.Logger):
-    def __init__(self, level, logfile=None):
+class VirtualBMCLogger(logging.Logger):
+
+    def __init__(self, debug=False, logfile=None):
         logging.Logger.__init__(self, 'VirtualBMC')
         try:
             if logfile is not None:
@@ -33,14 +36,22 @@ class Logger(logging.Logger):
             formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
             self.handler.setFormatter(formatter)
             self.addHandler(self.handler)
+
+            if debug:
+                self.setLevel(logging.DEBUG)
+            else:
+                self.setLevel(logging.INFO)
+
         except IOError, e:
             if e.errno == errno.EACCES:
                 pass
 
 
-def get_logger(level=logging.DEBUG, logfile=None):
+def get_logger():
     global LOGGER
     if LOGGER is None:
-        LOGGER = Logger(level=level, logfile=logfile)
+        log_conf = config.get_config()['log']
+        LOGGER = VirtualBMCLogger(debug=log_conf['debug'],
+                                  logfile=log_conf['logfile'])
 
     return LOGGER
