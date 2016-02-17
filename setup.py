@@ -13,7 +13,7 @@
 from setuptools import setup
 
 setup(name='virtualbmc',
-      version='0.0.2',
+      version='0.0.3',
       description=('Create virtual BMCs for controlling virtual instances '
                    'via IPMI'),
       url='http://github.com/umago/virtualbmc',
