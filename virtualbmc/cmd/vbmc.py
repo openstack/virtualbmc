@@ -112,6 +112,7 @@ def main():
             print(ptable)
 
         elif args.command == 'show':
+            ptable = PrettyTable(['Property', 'Value'])
             bmc = manager.show(args.domain_name)
             for key, val in bmc.items():
                 ptable.add_row([key, val])
