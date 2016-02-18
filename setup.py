@@ -12,8 +12,10 @@
 
 from setuptools import setup
 
+from virtualbmc import version
+
 setup(name='virtualbmc',
-      version='0.0.3',
+      version=version,
       description=('Create virtual BMCs for controlling virtual instances '
                    'via IPMI'),
       url='http://github.com/umago/virtualbmc',

@@ -14,4 +14,6 @@ import exception
 from virtualbmc import VirtualBMC
 from manager import VirtualBMCManager
 
-__all__ = ['exception', 'VirtualBMC', 'VirtualBMCManager']
+version = '0.0.3'
+
+__all__ = ['version', 'exception', 'VirtualBMC', 'VirtualBMCManager']
