@@ -62,8 +62,8 @@ def main():
     parser_delete = subparsers.add_parser('delete',
                                           help='Delete a virtual BMC')
     parser_delete.set_defaults(command='delete')
-    parser_delete.add_argument('domain_name',
-                               help='The name of the virtual machine')
+    parser_delete.add_argument('domain_names', nargs='+',
+                               help='A list of virtual machine names')
 
     # create the parser for the "start" command
     parser_start = subparsers.add_parser('start', help='Start a virtual BMC')
@@ -74,8 +74,8 @@ def main():
     # create the parser for the "stop" command
     parser_stop = subparsers.add_parser('stop', help='Stop a virtual BMC')
     parser_stop.set_defaults(command='stop')
-    parser_stop.add_argument('domain_name',
-                             help='The name of the virtual machine')
+    parser_stop.add_argument('domain_names', nargs='+',
+                             help='A list of virtual machine names')
 
     # create the parser for the "list" command
     parser_stop = subparsers.add_parser('list', help='list all virtual BMCs')
@@ -98,13 +98,15 @@ def main():
                         libvirt_uri=args.libvirt_uri)
 
         elif args.command == 'delete':
-            manager.delete(args.domain_name)
+            for domain in args.domain_names:
+                manager.delete(domain)
 
         elif args.command == 'start':
             manager.start(args.domain_name)
 
         elif args.command == 'stop':
-            manager.stop(args.domain_name)
+            for domain in args.domain_names:
+                manager.stop(domain)
 
         elif args.command == 'list':
             ptable = PrettyTable(['Domain name', 'Status', 'Address', 'Port'])
