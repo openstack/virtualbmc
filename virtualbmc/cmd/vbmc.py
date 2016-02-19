@@ -57,6 +57,16 @@ def main():
                             default="qemu:///system",
                             help=('The libvirt URI; defaults to '
                                   '"qemu:///system"'))
+    parser_add.add_argument('--libvirt-sasl-username',
+                            dest='libvirt_sasl_username',
+                            default=None,
+                            help=('The libvirt SASL username; defaults to '
+                                  'None'))
+    parser_add.add_argument('--libvirt-sasl-password',
+                            dest='libvirt_sasl_password',
+                            default=None,
+                            help=('The libvirt SASL password; defaults to '
+                                  'None'))
 
     # create the parser for the "delete" command
     parser_delete = subparsers.add_parser('delete',
@@ -92,10 +102,22 @@ def main():
 
     try:
         if args.command == 'add':
+
+            # Check if the username and password were given for SASL
+            sasl_user = args.libvirt_sasl_username
+            sasl_pass = args.libvirt_sasl_password
+            if any((sasl_user, sasl_pass)):
+                if not all((sasl_user, sasl_pass)):
+                    print("A password and username are required to use "
+                          "Libvirt's SASL authentication", file=sys.stderr)
+                    exit(1)
+
             manager.add(username=args.username, password=args.password,
                         port=args.port, address=args.address,
                         domain_name=args.domain_name,
-                        libvirt_uri=args.libvirt_uri)
+                        libvirt_uri=args.libvirt_uri,
+                        libvirt_sasl_username=sasl_user,
+                        libvirt_sasl_password=sasl_pass)
 
         elif args.command == 'delete':
             for domain in args.domain_names:
@@ -118,7 +140,7 @@ def main():
         elif args.command == 'show':
             ptable = PrettyTable(['Property', 'Value'])
             bmc = manager.show(args.domain_name)
-            for key, val in bmc.items():
+            for key, val in sorted(bmc.items()):
                 ptable.add_row([key, val])
             print(ptable)
 

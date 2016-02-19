@@ -44,12 +44,18 @@ class VirtualBMCManager(object):
         config.read(config_path)
 
         bmc = {}
-        for item in ('username', 'password', 'address',
-                     'domain_name', 'libvirt_uri'):
-            bmc[item] = config.get(DEFAULT_SECTION, item)
+        for item in ('username', 'password', 'address', 'domain_name',
+                     'libvirt_uri', 'libvirt_sasl_username',
+                     'libvirt_sasl_password'):
+            try:
+                value = config.get(DEFAULT_SECTION, item)
+            except configparser.NoOptionError:
+                value = None
+
+            bmc[item] = value
 
         # Port needs to be int
-        bmc['port'] = int(config.get(DEFAULT_SECTION, 'port'))
+        bmc['port'] = config.getint(DEFAULT_SECTION, 'port')
 
         return bmc
 
@@ -68,9 +74,14 @@ class VirtualBMCManager(object):
         bmc_config['status'] = RUNNING if running else DOWN
         return bmc_config
 
-    def add(self, username, password, port, address,
-            domain_name, libvirt_uri):
-        utils.check_libvirt_connection_and_domain(libvirt_uri, domain_name)
+    def add(self, username, password, port, address, domain_name, libvirt_uri,
+            libvirt_sasl_username, libvirt_sasl_password):
+
+        # check libvirt's connection and if domain exist prior to adding it
+        utils.check_libvirt_connection_and_domain(
+            libvirt_uri, domain_name,
+            sasl_username=libvirt_sasl_username,
+            sasl_password=libvirt_sasl_password)
 
         domain_path = os.path.join(utils.CONFIG_PATH, domain_name)
         try:
@@ -89,6 +100,13 @@ class VirtualBMCManager(object):
             config.set(DEFAULT_SECTION, 'address', address)
             config.set(DEFAULT_SECTION, 'domain_name', domain_name)
             config.set(DEFAULT_SECTION, 'libvirt_uri', libvirt_uri)
+
+            if libvirt_sasl_username and libvirt_sasl_password:
+                config.set(DEFAULT_SECTION, 'libvirt_sasl_username',
+                           libvirt_sasl_username)
+                config.set(DEFAULT_SECTION, 'libvirt_sasl_password',
+                           libvirt_sasl_password)
+
             config.write(f)
 
     def delete(self, domain_name):
@@ -110,8 +128,11 @@ class VirtualBMCManager(object):
 
         bmc_config = self._parse_config(domain_name)
 
+        # check libvirt's connection and domain prior to starting the BMC
         utils.check_libvirt_connection_and_domain(
-            bmc_config['libvirt_uri'], domain_name)
+            bmc_config['libvirt_uri'], domain_name,
+            sasl_username=bmc_config['libvirt_sasl_username'],
+            sasl_password=bmc_config['libvirt_sasl_password'])
 
         LOG.debug('Starting a Virtual BMC for domain %(domain)s with the '
                   'following configuration options: %(config)s',

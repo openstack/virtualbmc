@@ -43,15 +43,18 @@ SET_BOOT_DEVICES_MAP = {
 class VirtualBMC(bmc.Bmc):
 
     def __init__(self, username, password, port, address,
-                 domain_name, libvirt_uri):
+                 domain_name, libvirt_uri, libvirt_sasl_username=None,
+                 libvirt_sasl_password=None):
         super(VirtualBMC, self).__init__({username: password},
                                          port=port, address=address)
-        self.libvirt_uri = libvirt_uri
         self.domain_name = domain_name
+        self._conn_args = {'uri': libvirt_uri,
+                           'sasl_username': libvirt_sasl_username,
+                           'sasl_password': libvirt_sasl_password}
 
     def get_boot_device(self):
         LOG.debug('Get boot device called for %s', self.domain_name)
-        with utils.libvirt_open(self.libvirt_uri, readonly=True) as conn:
+        with utils.libvirt_open(readonly=True, **self._conn_args) as conn:
             domain = utils.get_libvirt_domain(conn, self.domain_name)
             boot_element = ET.fromstring(domain.XMLDesc()).find('.//os/boot')
             boot_dev = None
@@ -67,7 +70,7 @@ class VirtualBMC(bmc.Bmc):
         if device is None:
             return 0xd5
 
-        with utils.libvirt_open(self.libvirt_uri) as conn:
+        with utils.libvirt_open(**self._conn_args) as conn:
             domain = utils.get_libvirt_domain(conn, self.domain_name)
             tree = ET.fromstring(domain.XMLDesc())
 
@@ -90,7 +93,7 @@ class VirtualBMC(bmc.Bmc):
     def get_power_state(self):
         LOG.debug('Get power state called for domain %s', self.domain_name)
         try:
-            with utils.libvirt_open(self.libvirt_uri, readonly=True) as conn:
+            with utils.libvirt_open(readonly=True, **self._conn_args) as conn:
                 domain = utils.get_libvirt_domain(conn, self.domain_name)
                 if domain.isActive():
                     return POWERON
@@ -105,7 +108,7 @@ class VirtualBMC(bmc.Bmc):
     def power_off(self):
         LOG.debug('Power off called for domain %s', self.domain_name)
         try:
-            with utils.libvirt_open(self.libvirt_uri) as conn:
+            with utils.libvirt_open(**self._conn_args) as conn:
                 domain = utils.get_libvirt_domain(conn, self.domain_name)
                 if domain.isActive():
                     domain.destroy()
@@ -118,7 +121,7 @@ class VirtualBMC(bmc.Bmc):
     def power_on(self):
         LOG.debug('Power on called for domain %s', self.domain_name)
         try:
-            with utils.libvirt_open(self.libvirt_uri) as conn:
+            with utils.libvirt_open(**self._conn_args) as conn:
                 domain = utils.get_libvirt_domain(conn, self.domain_name)
                 if not domain.isActive():
                     domain.create()
