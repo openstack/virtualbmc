@@ -25,8 +25,15 @@ CONFIG = None
 
 class VirtualBMCConfig(object):
 
-    DEFAULTS = {'log': {'logfile': None,
-                        'debug': 'false'}}
+    DEFAULTS = {
+        'default': {
+            'show_passwords': 'false'
+        },
+        'log': {
+            'logfile': None,
+            'debug': 'false'
+        },
+    }
 
     def __init__(self):
         config = configparser.ConfigParser()
@@ -47,6 +54,9 @@ class VirtualBMCConfig(object):
     def _validate(self):
         self._conf_dict['log']['debug'] = utils.str2bool(
             self._conf_dict['log']['debug'])
+
+        self._conf_dict['default']['show_passwords'] = utils.str2bool(
+            self._conf_dict['default']['show_passwords'])
 
     def __getitem__(self, key):
         return self._conf_dict[key]

@@ -85,3 +85,12 @@ def str2bool(string):
         raise ValueError('Value "%s" can not be interpreted as '
                          'boolean' % string)
     return lower == 'true'
+
+
+def mask_dict_password(dictionary, secret='***'):
+    """Replace passwords with a secret in a dictionary."""
+    d = dictionary.copy()
+    for k in d:
+        if 'password' in k:
+            d[k] = secret
+    return d

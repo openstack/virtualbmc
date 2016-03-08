@@ -23,6 +23,7 @@ import exception
 import log
 from virtualbmc import VirtualBMC
 import utils
+import config as vbmc_config
 
 LOG = log.get_logger()
 
@@ -31,6 +32,8 @@ RUNNING = 'running'
 DOWN = 'down'
 
 DEFAULT_SECTION = 'VirtualBMC'
+
+CONF = vbmc_config.get_config()
 
 
 class VirtualBMCManager(object):
@@ -72,6 +75,11 @@ class VirtualBMCManager(object):
 
         bmc_config = self._parse_config(domain_name)
         bmc_config['status'] = RUNNING if running else DOWN
+
+        # mask the passwords if requested
+        if not CONF['default']['show_passwords']:
+            bmc_config = utils.mask_dict_password(bmc_config)
+
         return bmc_config
 
     def add(self, username, password, port, address, domain_name, libvirt_uri,
@@ -134,11 +142,16 @@ class VirtualBMCManager(object):
             sasl_username=bmc_config['libvirt_sasl_username'],
             sasl_password=bmc_config['libvirt_sasl_password'])
 
+        # mask the passwords if requested
+        log_config = bmc_config.copy()
+        if not CONF['default']['show_passwords']:
+            log_config = utils.mask_dict_password(bmc_config)
+
         LOG.debug('Starting a Virtual BMC for domain %(domain)s with the '
                   'following configuration options: %(config)s',
                   {'domain': domain_name,
-                   'config': ' '.join(['%s="%s"' % (k, bmc_config[k])
-                                       for k in bmc_config])})
+                   'config': ' '.join(['%s="%s"' % (k, log_config[k])
+                                       for k in log_config])})
 
         with daemon.DaemonContext(stderr=sys.stderr,
                                   files_preserve=[LOG.handler.stream, ]):
