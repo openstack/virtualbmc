@@ -10,10 +10,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import exception
-from virtualbmc import VirtualBMC
-from manager import VirtualBMCManager
+import pbr.version
 
-version = '0.0.4'
-
-__all__ = ['version', 'exception', 'VirtualBMC', 'VirtualBMCManager']
+__version__ = pbr.version.VersionInfo('virtualbmc').version_string()

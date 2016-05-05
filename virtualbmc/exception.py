@@ -29,3 +29,8 @@ class DomainNotFound(VirtualBMCError):
 class LibvirtConnectionOpenError(VirtualBMCError):
     message = ('Fail to establish a connection with libvirt URI "%(uri)s". '
                'Error: %(error)s')
+
+
+class DetachProcessError(VirtualBMCError):
+    message = ('Error when forking (detaching) the VirtualBMC process '
+               'from its parent and session. Error: %(error)s')

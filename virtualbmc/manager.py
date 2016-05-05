@@ -12,18 +12,17 @@
 
 import errno
 import os
-import sys
 import shutil
 import signal
+import sys
 
-import daemon
 from six.moves import configparser
 
-import exception
-import log
-from virtualbmc import VirtualBMC
-import utils
-import config as vbmc_config
+from virtualbmc import config as vbmc_config
+from virtualbmc import exception
+from virtualbmc import log
+from virtualbmc import utils
+from virtualbmc.vbmc import VirtualBMC
 
 LOG = log.get_logger()
 
@@ -70,7 +69,7 @@ class VirtualBMCManager(object):
                 pid = int(f.read())
 
             running = utils.is_pid_running(pid)
-        except IOError:
+        except (IOError, ValueError):
             pass
 
         bmc_config = self._parse_config(domain_name)
@@ -153,12 +152,7 @@ class VirtualBMCManager(object):
                    'config': ' '.join(['%s="%s"' % (k, log_config[k])
                                        for k in log_config])})
 
-        with daemon.DaemonContext(stderr=sys.stderr,
-                                  files_preserve=[LOG.handler.stream, ]):
-            # FIXME(lucasagomes): pyghmi start the sockets when the
-            # class is instantiated, therefore we need to create the object
-            # within the daemon context
-
+        with utils.detach_process() as pid_num:
             try:
                 vbmc = VirtualBMC(**bmc_config)
             except Exception as e:
@@ -171,7 +165,7 @@ class VirtualBMCManager(object):
             # Save the PID number
             pidfile_path = os.path.join(domain_path, 'pid')
             with open(pidfile_path, 'w') as f:
-                f.write(str(os.getpid()))
+                f.write(str(pid_num))
 
             LOG.info('Virtual BMC for domain %s started', domain_name)
             vbmc.listen()
@@ -187,7 +181,7 @@ class VirtualBMCManager(object):
         try:
             with open(pidfile_path, 'r') as f:
                 pid = int(f.read())
-        except IOError:
+        except (IOError, ValueError):
             raise exception.VirtualBMCError(
                 'Error stopping the domain %s: PID file not '
                 'found' % domain_name)

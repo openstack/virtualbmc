@@ -10,11 +10,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import logging
 import errno
-import sys
+import logging
 
-import config
+from virtualbmc import config
 
 __all__ = ['get_logger']
 
@@ -42,7 +41,7 @@ class VirtualBMCLogger(logging.Logger):
             else:
                 self.setLevel(logging.INFO)
 
-        except IOError, e:
+        except IOError as e:
             if e.errno == errno.EACCES:
                 pass
 

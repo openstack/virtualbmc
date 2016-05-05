@@ -17,9 +17,9 @@ import sys
 
 from prettytable import PrettyTable
 
+import virtualbmc
 from virtualbmc import exception
-from virtualbmc import version
-from virtualbmc import VirtualBMCManager
+from virtualbmc.manager import VirtualBMCManager
 
 
 def main():
@@ -27,7 +27,8 @@ def main():
         prog='Virtual BMC',
         description='A virtual BMC for controlling virtual instances',
     )
-    parser.add_argument('--version', action='version', version=version)
+    parser.add_argument('--version', action='version',
+                        version=virtualbmc.__version__)
     subparsers = parser.add_subparsers()
 
     # create the parser for the "add" command

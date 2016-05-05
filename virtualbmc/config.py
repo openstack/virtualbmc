@@ -14,7 +14,7 @@ import os
 
 from six.moves import configparser
 
-import utils
+from virtualbmc import utils
 
 __all__ = ['get_config']
 

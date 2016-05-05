@@ -10,10 +10,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import os
 import libvirt
+import os
 
-import exception
+from virtualbmc import exception
 
 CONFIG_PATH = os.path.join(os.path.expanduser('~'), '.vbmc')
 
@@ -94,3 +94,54 @@ def mask_dict_password(dictionary, secret='***'):
         if 'password' in k:
             d[k] = secret
     return d
+
+
+class detach_process(object):
+    """Detach the process from its parent and session."""
+
+    def _fork(self):
+        try:
+            ret = os.fork()
+            if ret > 0:
+                # Exit the parent process
+                os._exit(0)
+        except OSError as e:
+            raise exception.DetachProcessError(error=e)
+
+    def _change_root_directory(self):
+        """Change to root directory.
+
+        Ensure that our process doesn't keep any directory in use. Failure
+        to do this could make it so that an administrator couldn't
+        unmount a filesystem, because it was our current directory.
+        """
+        try:
+            os.chdir('/')
+        except Exception as e:
+            error = ('Failed to change root directory. Error: %s' % e)
+            raise exception.DetachProcessError(error=error)
+
+    def _change_file_creation_mask(self):
+        """Set the umask for new files.
+
+        Set the umask for new files the process creates so that it does
+        have complete control over the permissions of them. We don't
+        know what umask we may have inherited.
+        """
+        try:
+            os.umask(0)
+        except Exception as e:
+            error = ('Failed to change file creation mask. Error: %s' % e)
+            raise exception.DetachProcessError(error=error)
+
+    def __enter__(self):
+        self._fork()
+        os.setsid()
+        self._fork()
+        self._change_root_directory()
+        self._change_file_creation_mask()
+
+        return os.getpid()
+
+    def __exit__(self, type, value, traceback):
+        pass

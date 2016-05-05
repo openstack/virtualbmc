@@ -10,15 +10,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import os
 import xml.etree.ElementTree as ET
 
 import libvirt
 import pyghmi.ipmi.bmc as bmc
 
-import exception
-import log
-import utils
+from virtualbmc import log
+from virtualbmc import utils
 
 LOG = log.get_logger()
 
@@ -85,7 +83,7 @@ class VirtualBMC(bmc.Bmc):
 
             try:
                 conn.defineXML(ET.tostring(tree))
-            except libvirt.libvirtError as e:
+            except libvirt.libvirtError:
                 LOG.error('Failed setting the boot device  %(bootdev)s for '
                           'domain %(domain)s', {'bootdev': device,
                                                 'domain': self.domain_name})
