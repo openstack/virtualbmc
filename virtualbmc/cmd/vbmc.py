@@ -132,18 +132,19 @@ def main():
                 manager.stop(domain)
 
         elif args.command == 'list':
-            ptable = PrettyTable(['Domain name', 'Status', 'Address', 'Port'])
+            fields = ('Domain name', 'Status', 'Address', 'Port')
+            ptable = PrettyTable(fields)
             for bmc in manager.list():
                 ptable.add_row([bmc['domain_name'], bmc['status'],
                                 bmc['address'], bmc['port']])
-            print(ptable)
+            print(ptable.get_string(sortby=fields[0]))
 
         elif args.command == 'show':
             ptable = PrettyTable(['Property', 'Value'])
             bmc = manager.show(args.domain_name)
             for key, val in sorted(bmc.items()):
                 ptable.add_row([key, val])
-            print(ptable)
+            print(ptable.get_string())
 
     except exception.VirtualBMCError as e:
         print(e, file=sys.stderr)

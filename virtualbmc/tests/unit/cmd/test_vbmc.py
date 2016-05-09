@@ -108,8 +108,8 @@ class VBMCTestCase(base.TestCase):
 +-------------+---------+---------+------+
 | Domain name |  Status | Address | Port |
 +-------------+---------+---------+------+
-|    node-1   | running |    ::   | 321  |
 |    node-0   | running |    ::   | 123  |
+|    node-1   | running |    ::   | 321  |
 +-------------+---------+---------+------+
 """
             self.assertEqual(expected_output, out)
