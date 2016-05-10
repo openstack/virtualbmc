@@ -111,7 +111,7 @@ def main():
                 if not all((sasl_user, sasl_pass)):
                     print("A password and username are required to use "
                           "Libvirt's SASL authentication", file=sys.stderr)
-                    exit(1)
+                    sys.exit(1)
 
             manager.add(username=args.username, password=args.password,
                         port=args.port, address=args.address,
@@ -147,7 +147,7 @@ def main():
 
     except exception.VirtualBMCError as e:
         print(e, file=sys.stderr)
-        exit(1)
+        sys.exit(1)
 
 
 if __name__ == '__main__':
