@@ -95,6 +95,8 @@ class VirtualBMCManager(object):
             os.makedirs(domain_path)
         except OSError as e:
             if e.errno == errno.EEXIST:
+                # TODO(lucasagomes): Raise an exception for this and
+                #                    add a unittest!!!
                 sys.exit('Domain %s already exist' % domain_name)
 
         config_path = os.path.join(domain_path, 'config')
@@ -170,7 +172,7 @@ class VirtualBMCManager(object):
             LOG.info('Virtual BMC for domain %s started', domain_name)
             vbmc.listen()
 
-    def stop(sel, domain_name):
+    def stop(self, domain_name):
         LOG.debug('Stopping Virtual BMC for domain %s', domain_name)
         domain_path = os.path.join(utils.CONFIG_PATH, domain_name)
         if not os.path.exists(domain_path):

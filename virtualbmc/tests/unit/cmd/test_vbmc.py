@@ -22,6 +22,7 @@ import mock
 from virtualbmc.cmd import vbmc
 from virtualbmc import manager
 from virtualbmc.tests.unit import base
+from virtualbmc.tests.unit import utils as test_utils
 
 
 @mock.patch.object(sys, 'exit', lambda _: None)
@@ -30,16 +31,7 @@ class VBMCTestCase(base.TestCase):
 
     def setUp(self):
         super(VBMCTestCase, self).setUp()
-        self.domain = {
-            'domain_name': 'SpongeBob',
-            'address': '::',
-            'port': 123,
-            'username': 'admin',
-            'password': 'pass',
-            'libvirt_uri': 'foo://bar',
-            'libvirt_sasl_username': None,
-            'libvirt_sasl_password': None
-        }
+        self.domain = test_utils.get_domain()
 
     @mock.patch.object(manager.VirtualBMCManager, 'add')
     def test_main_add(self, mock_add, mock_parser):
