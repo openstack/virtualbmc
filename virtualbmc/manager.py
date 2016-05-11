@@ -14,7 +14,6 @@ import errno
 import os
 import shutil
 import signal
-import sys
 
 from six.moves import configparser
 
@@ -95,9 +94,10 @@ class VirtualBMCManager(object):
             os.makedirs(domain_path)
         except OSError as e:
             if e.errno == errno.EEXIST:
-                # TODO(lucasagomes): Raise an exception for this and
-                #                    add a unittest!!!
-                sys.exit('Domain %s already exist' % domain_name)
+                raise exception.DomainAlreadyExists(domain=domain_name)
+            raise exception.VirtualBMCError(
+                'Failed to create domain %(domain)s. Error: %(error)s' %
+                {'domain': domain_name, 'error': e.errno})
 
         config_path = os.path.join(domain_path, 'config')
         with open(config_path, 'w') as f:

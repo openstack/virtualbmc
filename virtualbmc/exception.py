@@ -22,6 +22,10 @@ class VirtualBMCError(Exception):
         super(VirtualBMCError, self).__init__(self.message)
 
 
+class DomainAlreadyExists(VirtualBMCError):
+    message = 'Domain %(domain)s already exists'
+
+
 class DomainNotFound(VirtualBMCError):
     message = 'No domain with matching name %(domain)s was found'
 
