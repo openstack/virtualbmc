@@ -29,7 +29,8 @@ class VirtualBMCConfigTestCase(base.TestCase):
         super(VirtualBMCConfigTestCase, self).setUp()
         self.vbmc_config = config.VirtualBMCConfig()
         self.config_dict = {'default': {'show_passwords': 'true'},
-                            'log': {'debug': 'true', 'logfile': '/foo/bar'}}
+                            'log': {'debug': 'true', 'logfile': '/foo/bar'},
+                            'ipmi': {'session_timeout': '30'}}
 
     @mock.patch.object(config.VirtualBMCConfig, '_validate')
     @mock.patch.object(config.VirtualBMCConfig, '_as_dict')
@@ -45,10 +46,11 @@ class VirtualBMCConfigTestCase(base.TestCase):
 
     def test__as_dict(self):
         config = mock.Mock()
-        config.sections.side_effect = ['default', 'log'],
+        config.sections.side_effect = ['default', 'log', 'ipmi'],
         config.items.side_effect = [[('show_passwords', 'true')],
                                     [('logfile', '/foo/bar'),
-                                     ('debug', 'true')]]
+                                     ('debug', 'true')],
+                                    [('session_timeout', '30')]]
         ret = self.vbmc_config._as_dict(config)
         self.assertEqual(self.config_dict, ret)
 
@@ -59,4 +61,5 @@ class VirtualBMCConfigTestCase(base.TestCase):
         expected = self.config_dict.copy()
         expected['default']['show_passwords'] = True
         expected['log']['debug'] = True
+        expected['ipmi']['session_timeout'] = 30
         self.assertEqual(expected, self.vbmc_config._conf_dict)
