@@ -35,7 +35,7 @@ class VirtualBMCConfig(object):
         },
     }
 
-    def __init__(self):
+    def initialize(self):
         config = configparser.ConfigParser()
         config.read(CONFIG_FILE)
         self._conf_dict = self._as_dict(config)
@@ -66,5 +66,6 @@ def get_config():
     global CONFIG
     if CONFIG is None:
         CONFIG = VirtualBMCConfig()
+        CONFIG.initialize()
 
     return CONFIG
