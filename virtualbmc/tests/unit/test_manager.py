@@ -186,22 +186,25 @@ class VirtualBMCManagerTestCase(base.TestCase):
     @mock.patch.object(os.path, 'exists')
     def test_start(self, mock_exists, mock__parse, mock_check_conn,
                    mock_detach, mock_vbmc, mock_open):
-        mock_exists.return_value = True
-        mock__parse.return_value = self.domain0
-        mock_detach.return_value.__enter__.return_value = 99999
-        file_handler = mock_open.return_value.__enter__.return_value
-        self.manager.start(self.domain_name0)
+        conf = {'ipmi': {'session_timeout': 10},
+                'default': {'show_passwords': False}}
+        with mock.patch('virtualbmc.manager.CONF', conf):
+            mock_exists.return_value = True
+            mock__parse.return_value = self.domain0
+            mock_detach.return_value.__enter__.return_value = 99999
+            file_handler = mock_open.return_value.__enter__.return_value
+            self.manager.start(self.domain_name0)
 
-        mock_exists.assert_called_once_with(self.domain_path0)
-        mock__parse.assert_called_once_with(self.domain_name0)
-        mock_check_conn.assert_called_once_with(
-            self.domain0['libvirt_uri'], self.domain0['domain_name'],
-            sasl_username=self.domain0['libvirt_sasl_username'],
-            sasl_password=self.domain0['libvirt_sasl_password'])
-        mock_detach.assert_called_once_with()
-        mock_vbmc.assert_called_once_with(**self.domain0)
-        mock_vbmc.return_value.listen.assert_called_once_with()
-        file_handler.write.assert_called_once_with('99999')
+            mock_exists.assert_called_once_with(self.domain_path0)
+            mock__parse.assert_called_once_with(self.domain_name0)
+            mock_check_conn.assert_called_once_with(
+                self.domain0['libvirt_uri'], self.domain0['domain_name'],
+                sasl_username=self.domain0['libvirt_sasl_username'],
+                sasl_password=self.domain0['libvirt_sasl_password'])
+            mock_detach.assert_called_once_with()
+            mock_vbmc.assert_called_once_with(**self.domain0)
+            mock_vbmc.return_value.listen.assert_called_once_with(timeout=10)
+            file_handler.write.assert_called_once_with('99999')
 
     @mock.patch.object(builtins, 'open')
     @mock.patch.object(os, 'kill')

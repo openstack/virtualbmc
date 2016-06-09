@@ -170,7 +170,7 @@ class VirtualBMCManager(object):
                 f.write(str(pid_num))
 
             LOG.info('Virtual BMC for domain %s started', domain_name)
-            vbmc.listen()
+            vbmc.listen(timeout=CONF['ipmi']['session_timeout'])
 
     def stop(self, domain_name):
         LOG.debug('Stopping Virtual BMC for domain %s', domain_name)

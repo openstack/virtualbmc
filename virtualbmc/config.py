@@ -33,6 +33,10 @@ class VirtualBMCConfig(object):
             'logfile': None,
             'debug': 'false'
         },
+        'ipmi': {
+            # Maximum time (in seconds) to wait for the data to come across
+            'session_timeout': 1
+        },
     }
 
     def initialize(self):
@@ -57,6 +61,9 @@ class VirtualBMCConfig(object):
 
         self._conf_dict['default']['show_passwords'] = utils.str2bool(
             self._conf_dict['default']['show_passwords'])
+
+        self._conf_dict['ipmi']['session_timeout'] = int(
+            self._conf_dict['ipmi']['session_timeout'])
 
     def __getitem__(self, key):
         return self._conf_dict[key]
