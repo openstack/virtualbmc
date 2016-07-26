@@ -107,6 +107,20 @@ class VirtualBMC(bmc.Bmc):
 
         return POWEROFF
 
+    def pulse_diag(self):
+        LOG.debug('Power diag called for domain %s', self.domain_name)
+        try:
+            with utils.libvirt_open(**self._conn_args) as conn:
+                domain = utils.get_libvirt_domain(conn, self.domain_name)
+                if domain.isActive():
+                    domain.injectNMI()
+        except libvirt.libvirtError as e:
+            LOG.error('Error powering diag the domain %(domain)s. '
+                      'Error: %(error)s' % {'domain': self.domain_name,
+                                            'error': e})
+            # Command not supported in present state
+            return 0xd5
+
     def power_off(self):
         LOG.debug('Power off called for domain %s', self.domain_name)
         try:

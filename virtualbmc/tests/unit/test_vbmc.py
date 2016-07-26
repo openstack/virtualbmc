@@ -128,6 +128,30 @@ class VirtualBMCTestCase(base.TestCase):
         self._assert_libvirt_calls(mock_libvirt_domain, mock_libvirt_open,
                                    readonly=True)
 
+    def test_pulse_diag_is_on(self, mock_libvirt_domain, mock_libvirt_open):
+        domain = mock_libvirt_domain.return_value
+        domain.isActive.return_value = True
+        self.vbmc.pulse_diag()
+
+        domain.injectNMI.assert_called_once_with()
+        self._assert_libvirt_calls(mock_libvirt_domain, mock_libvirt_open)
+
+    def test_pulse_diag_is_off(self, mock_libvirt_domain, mock_libvirt_open):
+        domain = mock_libvirt_domain.return_value
+        domain.isActive.return_value = False
+        self.vbmc.pulse_diag()
+
+        # power is already off, assert injectNMI() wasn't invoked
+        domain.injectNMI.assert_not_called()
+        self._assert_libvirt_calls(mock_libvirt_domain, mock_libvirt_open)
+
+    def test_pulse_diag_error(self, mock_libvirt_domain, mock_libvirt_open):
+        mock_libvirt_domain.side_effect = libvirt.libvirtError('boom')
+        ret = self.vbmc.pulse_diag()
+        self.assertEqual(0xd5, ret)
+        mock_libvirt_domain.return_value.injectNMI.assert_not_called()
+        self._assert_libvirt_calls(mock_libvirt_domain, mock_libvirt_open)
+
     def test_power_off_is_on(self, mock_libvirt_domain, mock_libvirt_open):
         domain = mock_libvirt_domain.return_value
         domain.isActive.return_value = True
