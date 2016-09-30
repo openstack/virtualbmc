@@ -6,4 +6,4 @@ pbr>=1.6 # Apache-2.0
 six>=1.9.0 # MIT
 libvirt-python>=1.2.5 # LGPLv2+
 pyghmi>=1.0.9 # Apache-2.0
-PrettyTable>=0.7,<0.8  # BSD
+PrettyTable<0.8,>=0.7.1 # BSD
