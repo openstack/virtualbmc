@@ -97,7 +97,7 @@ class VirtualBMCManager(object):
                 raise exception.DomainAlreadyExists(domain=domain_name)
             raise exception.VirtualBMCError(
                 'Failed to create domain %(domain)s. Error: %(error)s' %
-                {'domain': domain_name, 'error': e.errno})
+                {'domain': domain_name, 'error': e})
 
         config_path = os.path.join(domain_path, 'config')
         with open(config_path, 'w') as f:
