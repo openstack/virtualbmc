@@ -15,8 +15,6 @@ import os
 
 from virtualbmc import exception
 
-CONFIG_PATH = os.path.join(os.path.expanduser('~'), '.vbmc')
-
 
 class libvirt_open(object):
 

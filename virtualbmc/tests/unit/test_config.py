@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import os
+
 import mock
 from six.moves import configparser
 
@@ -28,7 +30,8 @@ class VirtualBMCConfigTestCase(base.TestCase):
     def setUp(self):
         super(VirtualBMCConfigTestCase, self).setUp()
         self.vbmc_config = config.VirtualBMCConfig()
-        self.config_dict = {'default': {'show_passwords': 'true'},
+        self.config_dict = {'default': {'show_passwords': 'true',
+                                        'config_dir': '/foo'},
                             'log': {'debug': 'true', 'logfile': '/foo/bar'},
                             'ipmi': {'session_timeout': '30'}}
 
@@ -44,10 +47,13 @@ class VirtualBMCConfigTestCase(base.TestCase):
         mock__as_dict.assert_called_once_with(config)
         mock__validate.assert_called_once_with()
 
-    def test__as_dict(self):
+    @mock.patch.object(os.path, 'exists')
+    def test__as_dict(self, mock_exists):
+        mock_exists.side_effect = (False, True)
         config = mock.Mock()
         config.sections.side_effect = ['default', 'log', 'ipmi'],
-        config.items.side_effect = [[('show_passwords', 'true')],
+        config.items.side_effect = [[('show_passwords', 'true'),
+                                     ('config_dir', mock.ANY)],
                                     [('logfile', '/foo/bar'),
                                      ('debug', 'true')],
                                     [('session_timeout', '30')]]
