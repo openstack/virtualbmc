@@ -12,6 +12,7 @@
 
 
 class VirtualBMCError(Exception):
+    message = None
 
     def __init__(self, message=None, **kwargs):
         if self.message and kwargs:

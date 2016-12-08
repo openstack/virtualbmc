@@ -86,7 +86,7 @@ class VirtualBMCManagerTestCase(base.TestCase):
     def _test__show(self, mock__parse, mock_pid, mock_open, expected=None):
         mock_pid.return_value = True
         mock__parse.return_value = self.domain0
-        f = mock.MagicMock(spec=file)
+        f = mock.MagicMock()
         f.read.return_value = self.domain0['port']
         mock_open.return_value.__enter__.return_value = f
 
@@ -212,7 +212,7 @@ class VirtualBMCManagerTestCase(base.TestCase):
     @mock.patch.object(os.path, 'exists')
     def test_stop(self, mock_exists, mock_remove, mock_kill, mock_open):
         mock_exists.return_value = True
-        f = mock.MagicMock(spec=file)
+        f = mock.MagicMock()
         f.read.return_value = self.domain0['port']
         mock_open.return_value.__enter__.return_value = f
 
@@ -234,7 +234,7 @@ class VirtualBMCManagerTestCase(base.TestCase):
     @mock.patch.object(os.path, 'exists')
     def test_stop_pid_file_not_found(self, mock_exists, mock_open):
         mock_exists.return_value = True
-        f = mock.MagicMock(spec=file)
+        f = mock.MagicMock()
         f.read.return_value = self.domain0['port']
         mock_open.return_value.__enter__.side_effect = IOError('boom')
 
