@@ -18,16 +18,24 @@ from virtualbmc import utils
 
 __all__ = ['get_config']
 
-CONFIG_FILE = os.path.join(utils.CONFIG_PATH, 'virtualbmc.conf')
+_CONFIG_FILE_PATHS = (
+    os.path.join(os.path.expanduser('~'), '.vbmc', 'virtualbmc.conf'),
+    '/etc/virtualbmc/virtualbmc.conf')
 
 CONFIG = None
+CONFIG_FILE = ''
+for config in _CONFIG_FILE_PATHS:
+    if os.path.exists(config):
+        CONFIG_FILE = config
+        break
 
 
 class VirtualBMCConfig(object):
 
     DEFAULTS = {
         'default': {
-            'show_passwords': 'false'
+            'show_passwords': 'false',
+            'config_dir': os.path.join(os.path.expanduser('~'), '.vbmc'),
         },
         'log': {
             'logfile': None,

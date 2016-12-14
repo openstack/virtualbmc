@@ -31,12 +31,12 @@ from virtualbmc import utils
 _CONFIG_PATH = '/foo'
 
 
-@mock.patch('virtualbmc.utils.CONFIG_PATH', _CONFIG_PATH)
 class VirtualBMCManagerTestCase(base.TestCase):
 
     def setUp(self):
         super(VirtualBMCManagerTestCase, self).setUp()
         self.manager = manager.VirtualBMCManager()
+        self.manager.config_dir = _CONFIG_PATH
         self.domain0 = test_utils.get_domain()
         self.domain1 = test_utils.get_domain(domain_name='Patrick', port=321)
         self.domain_name0 = self.domain0['domain_name']
