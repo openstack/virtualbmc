@@ -66,27 +66,30 @@ class VirtualBMC(bmc.Bmc):
                                            'bootdev': bootdevice})
         device = SET_BOOT_DEVICES_MAP.get(bootdevice)
         if device is None:
-            return 0xd5
+            # Invalid data field in request
+            return 0xcc
 
-        with utils.libvirt_open(**self._conn_args) as conn:
-            domain = utils.get_libvirt_domain(conn, self.domain_name)
-            tree = ET.fromstring(domain.XMLDesc())
+        try:
+            with utils.libvirt_open(**self._conn_args) as conn:
+                domain = utils.get_libvirt_domain(conn, self.domain_name)
+                tree = ET.fromstring(domain.XMLDesc())
 
-            for os_element in tree.findall('os'):
-                # Remove all "boot" elements
-                for boot_element in os_element.findall('boot'):
-                    os_element.remove(boot_element)
+                for os_element in tree.findall('os'):
+                    # Remove all "boot" elements
+                    for boot_element in os_element.findall('boot'):
+                        os_element.remove(boot_element)
 
-                # Add a new boot element with the request boot device
-                boot_element = ET.SubElement(os_element, 'boot')
-                boot_element.set('dev', device)
+                    # Add a new boot element with the request boot device
+                    boot_element = ET.SubElement(os_element, 'boot')
+                    boot_element.set('dev', device)
 
-            try:
                 conn.defineXML(ET.tostring(tree))
-            except libvirt.libvirtError:
-                LOG.error('Failed setting the boot device  %(bootdev)s for '
-                          'domain %(domain)s', {'bootdev': device,
-                                                'domain': self.domain_name})
+        except libvirt.libvirtError:
+            LOG.error('Failed setting the boot device  %(bootdev)s for '
+                      'domain %(domain)s', {'bootdev': device,
+                                            'domain': self.domain_name})
+            # Command not supported in present state
+            return 0xd5
 
     def get_power_state(self):
         LOG.debug('Get power state called for domain %s', self.domain_name)
@@ -99,7 +102,8 @@ class VirtualBMC(bmc.Bmc):
             LOG.error('Error getting the power state of domain %(domain)s. '
                       'Error: %(error)s', {'domain': self.domain_name,
                                            'error': e})
-            return
+            # Command not supported in present state
+            return 0xd5
 
         return POWEROFF
 
@@ -114,7 +118,8 @@ class VirtualBMC(bmc.Bmc):
             LOG.error('Error powering off the domain %(domain)s. '
                       'Error: %(error)s' % {'domain': self.domain_name,
                                             'error': e})
-            return
+            # Command not supported in present state
+            return 0xd5
 
     def power_on(self):
         LOG.debug('Power on called for domain %s', self.domain_name)
@@ -127,4 +132,5 @@ class VirtualBMC(bmc.Bmc):
             LOG.error('Error powering on the domain %(domain)s. '
                       'Error: %(error)s' % {'domain': self.domain_name,
                                             'error': e})
-            return
+            # Command not supported in present state
+            return 0xd5
