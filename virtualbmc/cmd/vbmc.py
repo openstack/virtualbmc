@@ -52,7 +52,8 @@ def main():
     parser_add.add_argument('--address',
                             dest='address',
                             default='::',
-                            help='The IPv6 address to bind to; defaults to ::')
+                            help=('The address to bind to (IPv4 and IPv6 '
+                                  'are supported); defaults to ::'))
     parser_add.add_argument('--libvirt-uri',
                             dest='libvirt_uri',
                             default="qemu:///system",
