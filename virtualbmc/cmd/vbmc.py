@@ -94,7 +94,7 @@ def main():
     parser_stop.set_defaults(command='list')
 
     # create the parser for the "show" command
-    parser_stop = subparsers.add_parser('show', help='Show a virtual BMCs')
+    parser_stop = subparsers.add_parser('show', help='Show a virtual BMC')
     parser_stop.set_defaults(command='show')
     parser_stop.add_argument('domain_name',
                              help='The name of the virtual machine')
