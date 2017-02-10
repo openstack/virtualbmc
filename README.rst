@@ -1,12 +1,4 @@
-========================
-Team and repository tags
-========================
-
-.. image:: http://governance.openstack.org/badges/virtualbmc.svg
-    :target: http://governance.openstack.org/reference/tags/index.html
-
-.. Change things from this point on
-
+===========
 Virtual BMC
 ===========
 
@@ -24,8 +16,8 @@ Supported IPMI commands
 
 .. code-block:: bash
 
-  # Power the virtual machine on or off
-  ipmitool -I lanplus -U admin -P password -H 127.0.0.1 power on|off
+  # Power the virtual machine on, off, graceful off and NMI
+  ipmitool -I lanplus -U admin -P password -H 127.0.0.1 power on|off|soft|diag
 
   # Check the power status
   ipmitool -I lanplus -U admin -P password -H 127.0.0.1 power status
@@ -35,3 +27,15 @@ Supported IPMI commands
 
   # Get the current boot device
   ipmitool -I lanplus -U admin -P password -H 127.0.0.1 chassis bootparam get 5
+
+  # Get the current boot device
+  ipmitool -I lanplus -U admin -P password -H 127.0.0.1 chassis bootparam get 5
+
+Team and repository tags
+------------------------
+
+.. image:: http://governance.openstack.org/badges/virtualbmc.svg
+    :target: http://governance.openstack.org/reference/tags/index.html
+
+.. Change things from this point on
+
