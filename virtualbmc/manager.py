@@ -15,6 +15,7 @@ import os
 import shutil
 import signal
 
+import six
 from six.moves import configparser
 
 from virtualbmc import config as vbmc_config
@@ -109,7 +110,7 @@ class VirtualBMCManager(object):
             config.add_section(DEFAULT_SECTION)
             config.set(DEFAULT_SECTION, 'username', username)
             config.set(DEFAULT_SECTION, 'password', password)
-            config.set(DEFAULT_SECTION, 'port', port)
+            config.set(DEFAULT_SECTION, 'port', six.text_type(port))
             config.set(DEFAULT_SECTION, 'address', address)
             config.set(DEFAULT_SECTION, 'domain_name', domain_name)
             config.set(DEFAULT_SECTION, 'libvirt_uri', libvirt_uri)

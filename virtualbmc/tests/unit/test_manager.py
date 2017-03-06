@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import copy
 import errno
 import os
 import shutil
@@ -44,7 +45,7 @@ class VirtualBMCManagerTestCase(base.TestCase):
         self.domain_path0 = os.path.join(_CONFIG_PATH, self.domain_name0)
         self.domain_path1 = os.path.join(_CONFIG_PATH, self.domain_name1)
         self.add_params = {'username': 'admin', 'password': 'pass',
-                           'port': 777, 'address': '::',
+                           'port': '777', 'address': '::',
                            'domain_name': 'Squidward Tentacles',
                            'libvirt_uri': 'foo://bar',
                            'libvirt_sasl_username': 'sasl_admin',
@@ -118,7 +119,33 @@ class VirtualBMCManagerTestCase(base.TestCase):
     def test_add(self, mock_check_conn, mock_makedirs, mock_configparser,
                  mock_open):
         config = mock_configparser.return_value
-        self.manager.add(**self.add_params)
+        params = copy.copy(self.add_params)
+        self.manager.add(**params)
+
+        expected_calls = [mock.call('VirtualBMC', i, self.add_params[i])
+                          for i in self.add_params]
+        self.assertEqual(sorted(expected_calls),
+                         sorted(config.set.call_args_list))
+        config.add_section.assert_called_once_with('VirtualBMC')
+        config.write.assert_called_once_with(mock.ANY)
+        mock_check_conn.assert_called_once_with(
+            self.add_params['libvirt_uri'], self.add_params['domain_name'],
+            sasl_username=self.add_params['libvirt_sasl_username'],
+            sasl_password=self.add_params['libvirt_sasl_password'])
+        mock_makedirs.assert_called_once_with(
+            os.path.join(_CONFIG_PATH, self.add_params['domain_name']))
+        mock_configparser.assert_called_once_with()
+
+    @mock.patch.object(builtins, 'open')
+    @mock.patch.object(configparser, 'ConfigParser')
+    @mock.patch.object(os, 'makedirs')
+    @mock.patch.object(utils, 'check_libvirt_connection_and_domain')
+    def test_add_with_port_as_int(self, mock_check_conn, mock_makedirs,
+                                  mock_configparser, mock_open):
+        config = mock_configparser.return_value
+        params = copy.copy(self.add_params)
+        params['port'] = int(params['port'])
+        self.manager.add(**params)
 
         expected_calls = [mock.call('VirtualBMC', i, self.add_params[i])
                           for i in self.add_params]
