@@ -148,7 +148,7 @@ class DetachProcessUtilsTestCase(base.TestCase):
         error_msg = 'Kare-a-tay!'
         mock_fork.side_effect = OSError(error_msg)
 
-        with self.assertRaisesRegexp(exception.DetachProcessError, error_msg):
+        with self.assertRaisesRegex(exception.DetachProcessError, error_msg):
             with utils.detach_process():
                 pass
 
@@ -169,7 +169,7 @@ class DetachProcessUtilsTestCase(base.TestCase):
         error_msg = 'Fish paste!'
         mock_chdir.side_effect = Exception(error_msg)
 
-        with self.assertRaisesRegexp(exception.DetachProcessError, error_msg):
+        with self.assertRaisesRegex(exception.DetachProcessError, error_msg):
             with utils.detach_process():
                 pass
 
@@ -193,7 +193,7 @@ class DetachProcessUtilsTestCase(base.TestCase):
         error_msg = 'Barnacles!'
         mock_umask.side_effect = Exception(error_msg)
 
-        with self.assertRaisesRegexp(exception.DetachProcessError, error_msg):
+        with self.assertRaisesRegex(exception.DetachProcessError, error_msg):
             with utils.detach_process():
                 pass
 
