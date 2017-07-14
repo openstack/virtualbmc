@@ -6,20 +6,15 @@
 Welcome to VirtualBMC's documentation!
 ======================================
 
+A virtual BMC for controlling virtual machines using
+`IPMI <https://en.wikipedia.org/wiki/Intelligent_Platform_Management_Interface>`_
+commands.
+
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   readme
-   installation
-   usage
-   contributing
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+   install/index
+   user/index
+   contributor/index
