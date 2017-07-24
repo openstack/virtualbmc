@@ -31,9 +31,12 @@ def main():
                         version=virtualbmc.__version__)
     subparsers = parser.add_subparsers()
 
+    # http://bugs.python.org/issue9253#msg186387
+    subparsers.required = True
+    subparsers.dest = 'command'
+
     # create the parser for the "add" command
     parser_add = subparsers.add_parser('add', help='Add a new virtual BMC')
-    parser_add.set_defaults(command='add')
     parser_add.add_argument('domain_name',
                             help='The name of the virtual machine')
     parser_add.add_argument('--username',
@@ -73,33 +76,29 @@ def main():
     # create the parser for the "delete" command
     parser_delete = subparsers.add_parser('delete',
                                           help='Delete a virtual BMC')
-    parser_delete.set_defaults(command='delete')
     parser_delete.add_argument('domain_names', nargs='+',
                                help='A list of virtual machine names')
 
     # create the parser for the "start" command
     parser_start = subparsers.add_parser('start', help='Start a virtual BMC')
-    parser_start.set_defaults(command='start')
     parser_start.add_argument('domain_name',
                               help='The name of the virtual machine')
 
     # create the parser for the "stop" command
     parser_stop = subparsers.add_parser('stop', help='Stop a virtual BMC')
-    parser_stop.set_defaults(command='stop')
     parser_stop.add_argument('domain_names', nargs='+',
                              help='A list of virtual machine names')
 
     # create the parser for the "list" command
-    parser_stop = subparsers.add_parser('list', help='list all virtual BMCs')
-    parser_stop.set_defaults(command='list')
+    subparsers.add_parser('list', help='list all virtual BMCs')
 
     # create the parser for the "show" command
-    parser_stop = subparsers.add_parser('show', help='Show a virtual BMC')
-    parser_stop.set_defaults(command='show')
-    parser_stop.add_argument('domain_name',
+    parser_show = subparsers.add_parser('show', help='Show a virtual BMC')
+    parser_show.add_argument('domain_name',
                              help='The name of the virtual machine')
 
     args = parser.parse_args()
+
     manager = VirtualBMCManager()
 
     try:
