@@ -22,7 +22,8 @@ def get_domain(**kwargs):
               'password': kwargs.get('password', 'pass'),
               'libvirt_uri': kwargs.get('libvirt_uri', 'foo://bar'),
               'libvirt_sasl_username': kwargs.get('libvirt_sasl_username'),
-              'libvirt_sasl_password': kwargs.get('libvirt_sasl_password')}
+              'libvirt_sasl_password': kwargs.get('libvirt_sasl_password'),
+              'active': kwargs.get('active', False)}
 
     status = kwargs.get('status')
     if status is not None:

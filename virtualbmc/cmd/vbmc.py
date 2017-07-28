@@ -10,17 +10,134 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import json
 import logging
+import os
 import sys
+import time
 
 from cliff.app import App
 from cliff.command import Command
 from cliff.commandmanager import CommandManager
 from cliff.lister import Lister
 
+import zmq
+
 import virtualbmc
-from virtualbmc import exception
-from virtualbmc.manager import VirtualBMCManager
+from virtualbmc.cmd import vbmcd
+from virtualbmc import config as vbmc_config
+from virtualbmc.exception import VirtualBMCError
+from virtualbmc import log
+
+CONF = vbmc_config.get_config()
+
+LOG = log.get_logger()
+
+
+class ZmqClient(object):
+    """Client part of the VirtualBMC system.
+
+    The command-line client tool communicates with the server part
+    of the VirtualBMC system by exchanging JSON-encoded messages.
+
+    Client builds requests out of its command-line options which
+    include the command (e.g. `start`, `list` etc) and command-specific
+    options.
+
+    Server response is a JSON document which contains at least the
+    `rc` and `msg` attributes, used to indicate the outcome of the
+    command, and optionally 2-D table conveyed through the `header`
+    and `rows` attributes pointing to lists of cell values.
+    """
+
+    SERVER_TIMEOUT = 5000  # milliseconds
+
+    def communicate(self, command, args, no_daemon=False):
+
+        data_out = {attr: getattr(args, attr)
+                    for attr in dir(args) if not attr.startswith('_')}
+
+        data_out.update(command=command)
+
+        data_out = json.dumps(data_out)
+
+        server_port = CONF['default']['server_port']
+
+        context = socket = None
+
+        try:
+            context = zmq.Context()
+            socket = context.socket(zmq.REQ)
+            socket.setsockopt(zmq.LINGER, 5)
+            socket.connect("tcp://127.0.0.1:%s" % server_port)
+
+            poller = zmq.Poller()
+            poller.register(socket, zmq.POLLIN)
+
+            while True:
+                try:
+                    if data_out:
+                        socket.send(data_out.encode('utf-8'))
+
+                    socks = dict(poller.poll(timeout=self.SERVER_TIMEOUT))
+                    if socket in socks and socks[socket] == zmq.POLLIN:
+                        data_in = socket.recv()
+                        break
+
+                    raise zmq.ZMQError('Server response timed out')
+
+                except zmq.ZMQError as ex:
+                    LOG.debug('Server at %(port)s connection error: '
+                              '%(error)s', {'port': server_port, 'error': ex})
+
+                    if no_daemon:
+                        msg = ('Server at %(port)s may be dead, will not '
+                               'try to revive it' % {'port': server_port})
+                        LOG.error(msg)
+                        raise VirtualBMCError(msg)
+
+                no_daemon = True
+
+                LOG.debug("Attempting to start vBMC daemon behind the "
+                          "scenes...")
+                LOG.debug("Please, configure your system to manage vbmcd "
+                          "by systemd!")
+
+                # attempt to start and daemonize the server
+                if os.fork() == 0:
+                    # this will also fork and detach properly
+                    vbmcd.main([])
+
+                # TODO(etingof): perform some more retries
+                time.sleep(3)
+
+                # MQ will deliver the original message to the daemon
+                # we've started
+                data_out = {}
+
+        finally:
+            if socket:
+                socket.close()
+                context.destroy()
+
+        try:
+            data_in = json.loads(data_in.decode('utf-8'))
+
+        except ValueError as ex:
+            msg = 'Server response parsing error %(error)s' % {'error': ex}
+            LOG.error(msg)
+            raise VirtualBMCError(msg)
+
+        rc = data_in.pop('rc', None)
+        if rc:
+            msg = '(%(rc)s): %(msg)s' % {
+                'rc': rc,
+                'msg': '\n'.join(data_in.get('msg', ()))
+            }
+            LOG.error(msg)
+            raise VirtualBMCError(msg)
+
+        return data_in
 
 
 class AddCommand(Command):
@@ -78,14 +195,11 @@ class AddCommand(Command):
                 msg = ("A password and username are required to use "
                        "Libvirt's SASL authentication")
                 log.error(msg)
-                raise exception.VirtualBMCError(msg)
+                raise VirtualBMCError(msg)
 
-        self.app.manager.add(username=args.username, password=args.password,
-                             port=args.port, address=args.address,
-                             domain_name=args.domain_name,
-                             libvirt_uri=args.libvirt_uri,
-                             libvirt_sasl_username=sasl_user,
-                             libvirt_sasl_password=sasl_pass)
+        self.app.zmq.communicate(
+            'add', args, no_daemon=self.app.options.no_daemon
+        )
 
 
 class DeleteCommand(Command):
@@ -100,8 +214,7 @@ class DeleteCommand(Command):
         return parser
 
     def take_action(self, args):
-        for domain in args.domain_names:
-            self.app.manager.delete(domain)
+        self.app.zmq.communicate('delete', args, self.app.options.no_daemon)
 
 
 class StartCommand(Command):
@@ -116,7 +229,9 @@ class StartCommand(Command):
         return parser
 
     def take_action(self, args):
-        self.app.manager.start(args.domain_name)
+        self.app.zmq.communicate(
+            'start', args, no_daemon=self.app.options.no_daemon
+        )
 
 
 class StopCommand(Command):
@@ -131,24 +246,19 @@ class StopCommand(Command):
         return parser
 
     def take_action(self, args):
-        for domain_name in args.domain_names:
-            self.app.manager.stop(domain_name)
+        self.app.zmq.communicate(
+            'stop', args, no_daemon=self.app.options.no_daemon
+        )
 
 
 class ListCommand(Lister):
     """List all virtual BMC instances"""
 
     def take_action(self, args):
-        header = ('Domain name', 'Status', 'Address', 'Port')
-        rows = []
-
-        for bmc in self.app.manager.list():
-            rows.append(
-                ([bmc['domain_name'], bmc['status'],
-                  bmc['address'], bmc['port']])
-            )
-
-        return header, sorted(rows)
+        rsp = self.app.zmq.communicate(
+            'list', args, no_daemon=self.app.options.no_daemon
+        )
+        return rsp['header'], sorted(rsp['rows'])
 
 
 class ShowCommand(Lister):
@@ -163,15 +273,10 @@ class ShowCommand(Lister):
         return parser
 
     def take_action(self, args):
-        header = ('Property', 'Value')
-        rows = []
-
-        bmc = self.app.manager.show(args.domain_name)
-
-        for key, val in bmc.items():
-            rows.append((key, val))
-
-        return header, sorted(rows)
+        rsp = self.app.zmq.communicate(
+            'show', args, no_daemon=self.app.options.no_daemon
+        )
+        return rsp['header'], sorted(rsp['rows'])
 
 
 class VirtualBMCApp(App):
@@ -185,8 +290,19 @@ class VirtualBMCApp(App):
             deferred_help=True,
         )
 
+    def build_option_parser(self, description, version, argparse_kwargs=None):
+        parser = super(VirtualBMCApp, self).build_option_parser(
+            description, version, argparse_kwargs
+        )
+
+        parser.add_argument('--no-daemon',
+                            action='store_true',
+                            help='Do not start vbmcd automatically')
+
+        return parser
+
     def initialize_app(self, argv):
-        self.manager = VirtualBMCManager()
+        self.zmq = ZmqClient()
 
     def clean_up(self, cmd, result, err):
         self.LOG.debug('clean_up %s', cmd.__class__.__name__)

@@ -31,8 +31,10 @@ class VirtualBMCConfigTestCase(base.TestCase):
         super(VirtualBMCConfigTestCase, self).setUp()
         self.vbmc_config = config.VirtualBMCConfig()
         self.config_dict = {'default': {'show_passwords': 'true',
-                                        'config_dir': '/foo'},
-                            'log': {'debug': 'true', 'logfile': '/foo/bar'},
+                                        'config_dir': '/foo/bar/1',
+                                        'pid_file': '/foo/bar/2',
+                                        'server_port': '12345'},
+                            'log': {'debug': 'true', 'logfile': '/foo/bar/4'},
                             'ipmi': {'session_timeout': '30'}}
 
     @mock.patch.object(config.VirtualBMCConfig, '_validate')
@@ -53,8 +55,10 @@ class VirtualBMCConfigTestCase(base.TestCase):
         config = mock.Mock()
         config.sections.side_effect = ['default', 'log', 'ipmi'],
         config.items.side_effect = [[('show_passwords', 'true'),
-                                     ('config_dir', mock.ANY)],
-                                    [('logfile', '/foo/bar'),
+                                     ('config_dir', '/foo/bar/1'),
+                                     ('pid_file', '/foo/bar/2'),
+                                     ('server_port', '12345')],
+                                    [('logfile', '/foo/bar/4'),
                                      ('debug', 'true')],
                                     [('session_timeout', '30')]]
         ret = self.vbmc_config._as_dict(config)

@@ -1,6 +1,6 @@
-===========
-Virtual BMC
-===========
+==========
+VirtualBMC
+==========
 
 A virtual BMC for controlling virtual machines using IPMI commands.
 

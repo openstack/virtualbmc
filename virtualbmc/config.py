@@ -35,7 +35,13 @@ class VirtualBMCConfig(object):
     DEFAULTS = {
         'default': {
             'show_passwords': 'false',
-            'config_dir': os.path.join(os.path.expanduser('~'), '.vbmc'),
+            'config_dir': os.path.join(
+                os.path.expanduser('~'), '.vbmc'
+            ),
+            'pid_file': os.path.join(
+                os.path.expanduser('~'), '.vbmc', 'master.pid'
+            ),
+            'server_port': 50891,
         },
         'log': {
             'logfile': None,

@@ -51,7 +51,7 @@ class VirtualBMC(bmc.Bmc):
 
     def __init__(self, username, password, port, address,
                  domain_name, libvirt_uri, libvirt_sasl_username=None,
-                 libvirt_sasl_password=None):
+                 libvirt_sasl_password=None, **kwargs):
         super(VirtualBMC, self).__init__({username: password},
                                          port=port, address=address)
         self.domain_name = domain_name

@@ -6,9 +6,14 @@
 Welcome to VirtualBMC's documentation!
 ======================================
 
-A virtual BMC for controlling virtual machines using
+The VirtualBMC tool simulates a
+`Baseboard Management Controller <https://en.wikipedia.org/wiki/Intelligent_Platform_Management_Interface#Baseboard_management_controller>`_
+(BMC) by exposing
 `IPMI <https://en.wikipedia.org/wiki/Intelligent_Platform_Management_Interface>`_
-commands.
+responder to the network and talking to
+`libvirt <https://en.wikipedia.org/wiki/Libvirt>`_
+at the host vBMC is running at to manipulate virtual machines which pretend
+to be bare metal servers.
 
 Contents:
 

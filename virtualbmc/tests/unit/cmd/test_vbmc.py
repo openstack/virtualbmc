@@ -13,13 +13,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import json
+import mock
 import six
 import sys
 
-import mock
+import zmq
 
 from virtualbmc.cmd import vbmc
-from virtualbmc import manager
 from virtualbmc.tests.unit import base
 from virtualbmc.tests.unit import utils as test_utils
 
@@ -31,91 +32,259 @@ class VBMCTestCase(base.TestCase):
         super(VBMCTestCase, self).setUp()
         self.domain = test_utils.get_domain()
 
-    @mock.patch.object(manager.VirtualBMCManager, 'add')
-    def test_main_add(self, mock_add):
-        argv = ['add']
-        for option, value in self.domain.items():
-            if option != 'domain_name':
-                argv.append('--' + option.replace('_', '-'))
-                argv.append(value and str(value))
-        argv.append(self.domain['domain_name'])
-        vbmc.main(argv)
-        mock_add.assert_called_once_with(**self.domain)
+    @mock.patch.object(zmq, 'Context')
+    @mock.patch.object(zmq, 'Poller')
+    def test_server_timeout(self, mock_zmq_poller, mock_zmq_context):
+        expected_rc = 1
+        expected_output = ('Server at 50891 may be dead, '
+                           'will not try to revive it\n')
 
-    @mock.patch.object(manager.VirtualBMCManager, 'delete')
-    def test_main_delete(self, mock_delete):
-        argv = ['delete', 'foo', 'bar']
-        vbmc.main(argv)
-        expected_calls = [mock.call('foo'), mock.call('bar')]
-        self.assertEqual(expected_calls, mock_delete.call_args_list)
+        mock_zmq_poller = mock_zmq_poller.return_value
+        mock_zmq_poller.poll.return_value = {}
 
-    @mock.patch.object(manager.VirtualBMCManager, 'start')
-    def test_main_start(self, mock_start):
-        argv = ['start', 'SpongeBob']
-        vbmc.main(argv)
-        mock_start.assert_called_once_with('SpongeBob')
+        with mock.patch.object(sys, 'stderr', six.StringIO()) as output:
+            rc = vbmc.main(['--no-daemon',
+                            'add', '--username', 'ironic', 'bar'])
 
-    @mock.patch.object(manager.VirtualBMCManager, 'stop')
-    def test_main_stop(self, mock_stop):
-        argv = ['stop', 'foo', 'bar']
-        vbmc.main(argv)
-        expected_calls = [mock.call('foo'), mock.call('bar')]
-        self.assertEqual(expected_calls, mock_stop.call_args_list)
+            self.assertEqual(expected_rc, rc)
+            self.assertEqual(expected_output, output.getvalue())
 
-    @mock.patch.object(manager.VirtualBMCManager, 'list')
-    def test_main_list(self, mock_list):
-        argv = ['list']
+    @mock.patch.object(zmq, 'Context')
+    @mock.patch.object(zmq, 'Poller')
+    def test_main_add(self, mock_zmq_poller, mock_zmq_context):
+        expected_rc = 0
+        expected_output = ''
 
-        mock_list.return_value = [
-            {'domain_name': 'node-1',
-             'status': 'running',
-             'address': '::',
-             'port': 321},
-            {'domain_name': 'node-0',
-             'status': 'running',
-             'address': '::',
-             'port': 123}]
+        srv_rsp = {
+            'rc': expected_rc,
+            'msg': ['OK']
+        }
+
+        mock_zmq_context = mock_zmq_context.return_value
+        mock_zmq_socket = mock_zmq_context.socket.return_value
+        mock_zmq_socket.recv.return_value = json.dumps(srv_rsp).encode()
+        mock_zmq_poller = mock_zmq_poller.return_value
+        mock_zmq_poller.poll.return_value = {
+            mock_zmq_socket: zmq.POLLIN
+        }
 
         with mock.patch.object(sys, 'stdout', six.StringIO()) as output:
-            vbmc.main(argv)
-            out = output.getvalue()
-            expected_output = """\
-+-------------+---------+---------+------+
-| Domain name | Status  | Address | Port |
-+-------------+---------+---------+------+
-| node-0      | running | ::      |  123 |
-| node-1      | running | ::      |  321 |
-+-------------+---------+---------+------+
-"""
-            self.assertEqual(expected_output, out)
+            rc = vbmc.main(['add', '--username', 'ironic', 'bar'])
 
-        self.assertEqual(mock_list.call_count, 1)
+            query = json.loads(mock_zmq_socket.send.call_args[0][0].decode())
 
-    @mock.patch.object(manager.VirtualBMCManager, 'show')
-    def test_main_show(self, mock_show):
-        argv = ['show', 'SpongeBob']
+            expected_query = {
+                'command': 'add',
+                'address': '::',
+                'port': 623,
+                'libvirt_uri': 'qemu:///system',
+                'libvirt_sasl_username': None,
+                'libvirt_sasl_password': None,
+                'username': 'ironic',
+                'password': 'password',
+                'domain_name': 'bar',
+            }
 
-        self.domain['status'] = 'running'
-        mock_show.return_value = self.domain
+            self.assertEqual(expected_query, query)
+
+            self.assertEqual(expected_rc, rc)
+            self.assertEqual(expected_output, output.getvalue())
+
+    @mock.patch.object(zmq, 'Context')
+    @mock.patch.object(zmq, 'Poller')
+    def test_main_delete(self, mock_zmq_poller, mock_zmq_context):
+        expected_rc = 0
+        expected_output = ''
+
+        srv_rsp = {
+            'rc': expected_rc,
+            'msg': ['OK']
+        }
+
+        mock_zmq_context = mock_zmq_context.return_value
+        mock_zmq_socket = mock_zmq_context.socket.return_value
+        mock_zmq_socket.recv.return_value = json.dumps(srv_rsp).encode()
+        mock_zmq_poller = mock_zmq_poller.return_value
+        mock_zmq_poller.poll.return_value = {
+            mock_zmq_socket: zmq.POLLIN
+        }
 
         with mock.patch.object(sys, 'stdout', six.StringIO()) as output:
-            vbmc.main(argv)
-            out = output.getvalue()
-            expected_output = """\
-+-----------------------+-----------+
-| Property              | Value     |
-+-----------------------+-----------+
-| address               | ::        |
-| domain_name           | SpongeBob |
-| libvirt_sasl_password | None      |
-| libvirt_sasl_username | None      |
-| libvirt_uri           | foo://bar |
-| password              | pass      |
-| port                  | 123       |
-| status                | running   |
-| username              | admin     |
-+-----------------------+-----------+
-"""
-            self.assertEqual(expected_output, out)
 
-        self.assertEqual(mock_show.call_count, 1)
+            rc = vbmc.main(['delete', 'foo', 'bar'])
+
+            query = json.loads(mock_zmq_socket.send.call_args[0][0].decode())
+
+            expected_query = {
+                "domain_names": ["foo", "bar"],
+                "command": "delete",
+            }
+
+            self.assertEqual(expected_query, query)
+
+            self.assertEqual(expected_rc, rc)
+            self.assertEqual(expected_output, output.getvalue())
+
+    @mock.patch.object(zmq, 'Context')
+    @mock.patch.object(zmq, 'Poller')
+    def test_main_start(self, mock_zmq_poller, mock_zmq_context):
+        expected_rc = 0
+        expected_output = ''
+
+        srv_rsp = {
+            'rc': expected_rc,
+            'msg': ['OK']
+        }
+
+        mock_zmq_context = mock_zmq_context.return_value
+        mock_zmq_socket = mock_zmq_context.socket.return_value
+        mock_zmq_socket.recv.return_value = json.dumps(srv_rsp).encode()
+        mock_zmq_poller = mock_zmq_poller.return_value
+        mock_zmq_poller.poll.return_value = {
+            mock_zmq_socket: zmq.POLLIN
+        }
+
+        with mock.patch.object(sys, 'stdout', six.StringIO()) as output:
+
+            rc = vbmc.main(['start', 'foo'])
+
+            query = json.loads(mock_zmq_socket.send.call_args[0][0].decode())
+
+            expected_query = {
+                'command': 'start',
+                'domain_name': 'foo'
+            }
+
+            self.assertEqual(expected_query, query)
+
+            self.assertEqual(expected_rc, rc)
+            self.assertEqual(expected_output, output.getvalue())
+
+    @mock.patch.object(zmq, 'Context')
+    @mock.patch.object(zmq, 'Poller')
+    def test_main_stop(self, mock_zmq_poller, mock_zmq_context):
+        expected_rc = 0
+        expected_output = ''
+
+        srv_rsp = {
+            'rc': expected_rc,
+            'msg': ['OK']
+        }
+
+        mock_zmq_context = mock_zmq_context.return_value
+        mock_zmq_socket = mock_zmq_context.socket.return_value
+        mock_zmq_socket.recv.return_value = json.dumps(srv_rsp).encode()
+        mock_zmq_poller = mock_zmq_poller.return_value
+        mock_zmq_poller.poll.return_value = {
+            mock_zmq_socket: zmq.POLLIN
+        }
+
+        with mock.patch.object(sys, 'stdout', six.StringIO()) as output:
+
+            rc = vbmc.main(['stop', 'foo', 'bar'])
+
+            query = json.loads(mock_zmq_socket.send.call_args[0][0].decode())
+
+            expected_query = {
+                'command': 'stop',
+                'domain_names': ['foo', 'bar']
+            }
+
+            self.assertEqual(expected_query, query)
+
+            self.assertEqual(expected_rc, rc)
+            self.assertEqual(expected_output, output.getvalue())
+
+    @mock.patch.object(zmq, 'Context')
+    @mock.patch.object(zmq, 'Poller')
+    def test_main_list(self, mock_zmq_poller, mock_zmq_context):
+        expected_rc = 0
+        expected_output = """+-------+-------+
+| col1  | col2  |
++-------+-------+
+| cell1 | cell2 |
+| cell3 | cell4 |
++-------+-------+
+"""
+
+        srv_rsp = {
+            'rc': expected_rc,
+            'header': ['col1', 'col2'],
+            'rows': [['cell1', 'cell2'],
+                     ['cell3', 'cell4']],
+        }
+
+        mock_zmq_context = mock_zmq_context.return_value
+        mock_zmq_socket = mock_zmq_context.socket.return_value
+        mock_zmq_socket.recv.return_value = json.dumps(srv_rsp).encode()
+        mock_zmq_poller = mock_zmq_poller.return_value
+        mock_zmq_poller.poll.return_value = {
+            mock_zmq_socket: zmq.POLLIN
+        }
+
+        with mock.patch.object(sys, 'stdout', six.StringIO()) as output:
+
+            rc = vbmc.main(['list'])
+
+            query = json.loads(mock_zmq_socket.send.call_args[0][0].decode())
+
+            expected_query = {
+                "command": "list",
+            }
+
+            # Cliff adds some extra args to the query
+            query = {key: query[key] for key in query
+                     if key in expected_query}
+
+            self.assertEqual(expected_query, query)
+
+            self.assertEqual(expected_rc, rc)
+            self.assertEqual(expected_output, output.getvalue())
+
+    @mock.patch.object(zmq, 'Context')
+    @mock.patch.object(zmq, 'Poller')
+    def test_main_show(self, mock_zmq_poller, mock_zmq_context):
+        expected_rc = 0
+
+        expected_output = """+-------+-------+
+| col1  | col2  |
++-------+-------+
+| cell1 | cell2 |
+| cell3 | cell4 |
++-------+-------+
+"""
+
+        srv_rsp = {
+            'rc': expected_rc,
+            'header': ['col1', 'col2'],
+            'rows': [['cell1', 'cell2'],
+                     ['cell3', 'cell4']]
+        }
+
+        mock_zmq_context = mock_zmq_context.return_value
+        mock_zmq_socket = mock_zmq_context.socket.return_value
+        mock_zmq_socket.recv.return_value = json.dumps(srv_rsp).encode()
+        mock_zmq_poller = mock_zmq_poller.return_value
+        mock_zmq_poller.poll.return_value = {
+            mock_zmq_socket: zmq.POLLIN
+        }
+
+        with mock.patch.object(sys, 'stdout', six.StringIO()) as output:
+
+            rc = vbmc.main(['show', 'domain0'])
+
+            query = json.loads(mock_zmq_socket.send.call_args[0][0].decode())
+
+            expected_query = {
+                "domain_name": "domain0",
+                "command": "show",
+            }
+
+            # Cliff adds some extra args to the query
+            query = {key: query[key] for key in query
+                     if key in expected_query}
+
+            self.assertEqual(expected_query, query)
+
+            self.assertEqual(expected_rc, rc)
+            self.assertEqual(expected_output, output.getvalue())

@@ -11,9 +11,9 @@
 #    under the License.
 
 import errno
+import multiprocessing
 import os
 import shutil
-import signal
 
 import six
 from six.moves import configparser
@@ -37,56 +37,196 @@ CONF = vbmc_config.get_config()
 
 class VirtualBMCManager(object):
 
+    VBMC_OPTIONS = ['username', 'password', 'address', 'port',
+                    'domain_name', 'libvirt_uri', 'libvirt_sasl_username',
+                    'libvirt_sasl_password', 'active']
+
     def __init__(self):
         super(VirtualBMCManager, self).__init__()
         self.config_dir = CONF['default']['config_dir']
+        self._running_domains = {}
 
     def _parse_config(self, domain_name):
         config_path = os.path.join(self.config_dir, domain_name, 'config')
         if not os.path.exists(config_path):
             raise exception.DomainNotFound(domain=domain_name)
 
+        try:
+            config = configparser.ConfigParser()
+            config.read(config_path)
+
+            bmc = {}
+            for item in self.VBMC_OPTIONS:
+                try:
+                    value = config.get(DEFAULT_SECTION, item)
+                except configparser.NoOptionError:
+                    value = None
+
+                bmc[item] = value
+
+            # Port needs to be int
+            bmc['port'] = config.getint(DEFAULT_SECTION, 'port')
+
+            return bmc
+
+        except OSError:
+            raise exception.DomainNotFound(domain=domain_name)
+
+    def _store_config(self, **options):
         config = configparser.ConfigParser()
-        config.read(config_path)
+        config.add_section(DEFAULT_SECTION)
 
-        bmc = {}
-        for item in ('username', 'password', 'address', 'domain_name',
-                     'libvirt_uri', 'libvirt_sasl_username',
-                     'libvirt_sasl_password'):
+        for option, value in sorted(options.items()):
+            if value is not None:
+                config.set(DEFAULT_SECTION, option, six.text_type(value))
+
+        config_path = os.path.join(
+            self.config_dir, options['domain_name'], 'config'
+        )
+
+        with open(config_path, 'w') as f:
+            config.write(f)
+
+    def _vbmc_enabled(self, domain_name, lets_enable=None, config=None):
+        if not config:
+            config = self._parse_config(domain_name)
+
+        try:
+            currently_enabled = utils.str2bool(config['active'])
+
+        except Exception:
+            currently_enabled = False
+
+        if (lets_enable is not None and
+                lets_enable != currently_enabled):
+            config.update(active=lets_enable)
+            self._store_config(**config)
+            currently_enabled = lets_enable
+
+        return currently_enabled
+
+    def _sync_vbmc_states(self, shutdown=False):
+        """Starts/stops vBMC instances
+
+        Walks over vBMC instances configuration, starts
+        enabled but dead instances, kills non-configured
+        but alive ones.
+        """
+
+        def vbmc_runner(bmc_config):
+
+            show_passwords = CONF['default']['show_passwords']
+
+            if show_passwords:
+                show_options = bmc_config
+            else:
+                show_options = utils.mask_dict_password(bmc_config)
+
             try:
-                value = config.get(DEFAULT_SECTION, item)
-            except configparser.NoOptionError:
-                value = None
+                vbmc = VirtualBMC(**bmc_config)
 
-            bmc[item] = value
+            except Exception as ex:
+                LOG.error(
+                    'Error running vBMC with configuration '
+                    '%(opts)s: %(error)s' % {'opts': show_options,
+                                             'error': ex}
+                )
+                return
 
-        # Port needs to be int
-        bmc['port'] = config.getint(DEFAULT_SECTION, 'port')
+            try:
+                vbmc.listen(timeout=CONF['ipmi']['session_timeout'])
 
-        return bmc
+            except Exception as ex:
+                LOG.info(
+                    'Shutdown vBMC for domain %(domain)s, cause '
+                    '%(error)s' % {'domain': show_options['domain_name'],
+                                   'error': ex}
+                )
+                return
+
+        for domain_name in os.listdir(self.config_dir):
+            if not os.path.isdir(
+                    os.path.join(self.config_dir, domain_name)
+            ):
+                continue
+
+            try:
+                bmc_config = self._parse_config(domain_name)
+
+            except exception.DomainNotFound:
+                continue
+
+            if shutdown:
+                lets_enable = False
+            else:
+                lets_enable = self._vbmc_enabled(
+                    domain_name, config=bmc_config
+                )
+
+            instance = self._running_domains.get(domain_name)
+
+            if lets_enable:
+
+                if not instance:
+
+                    instance = multiprocessing.Process(
+                        name='xxx',
+                        target=vbmc_runner,
+                        args=(bmc_config,)
+                    )
+
+                    instance.daemon = True
+                    instance.start()
+
+                    self._running_domains[domain_name] = instance
+
+                    LOG.info(
+                        'Started vBMC instance for domain '
+                        '%(domain)s' % {'domain': domain_name}
+                    )
+
+            else:
+                if instance:
+                    if instance.is_alive():
+                        instance.terminate()
+                        LOG.info(
+                            'Terminated vBMC instance for domain '
+                            '%(domain)s' % {'domain': domain_name}
+                        )
+
+            if instance and not instance.is_alive():
+                del self._running_domains[domain_name]
+                LOG.info(
+                    'Reaped vBMC instance for domain %(domain)s '
+                    '(rc %(rc)s)' % {'domain': domain_name,
+                                     'rc': instance.exitcode}
+                )
 
     def _show(self, domain_name):
-        running = False
-        try:
-            pidfile_path = os.path.join(self.config_dir, domain_name, 'pid')
-            with open(pidfile_path, 'r') as f:
-                pid = int(f.read())
-
-            running = utils.is_pid_running(pid)
-        except (IOError, ValueError):
-            pass
-
         bmc_config = self._parse_config(domain_name)
-        bmc_config['status'] = RUNNING if running else DOWN
 
-        # mask the passwords if requested
-        if not CONF['default']['show_passwords']:
-            bmc_config = utils.mask_dict_password(bmc_config)
+        show_passwords = CONF['default']['show_passwords']
 
-        return bmc_config
+        if show_passwords:
+            show_options = bmc_config
+        else:
+            show_options = utils.mask_dict_password(bmc_config)
 
-    def add(self, username, password, port, address, domain_name, libvirt_uri,
-            libvirt_sasl_username, libvirt_sasl_password):
+        instance = self._running_domains.get(domain_name)
+
+        if instance and instance.is_alive():
+            show_options['status'] = RUNNING
+        else:
+            show_options['status'] = DOWN
+
+        return show_options
+
+    def periodic(self, shutdown=False):
+        self._sync_vbmc_states(shutdown)
+
+    def add(self, username, password, port, address, domain_name,
+            libvirt_uri, libvirt_sasl_username, libvirt_sasl_password,
+            **kwargs):
 
         # check libvirt's connection and if domain exist prior to adding it
         utils.check_libvirt_connection_and_domain(
@@ -95,33 +235,34 @@ class VirtualBMCManager(object):
             sasl_password=libvirt_sasl_password)
 
         domain_path = os.path.join(self.config_dir, domain_name)
+
         try:
             os.makedirs(domain_path)
-        except OSError as e:
-            if e.errno == errno.EEXIST:
-                raise exception.DomainAlreadyExists(domain=domain_name)
-            raise exception.VirtualBMCError(
-                'Failed to create domain %(domain)s. Error: %(error)s' %
-                {'domain': domain_name, 'error': e})
+        except OSError as ex:
+            if ex.errno == errno.EEXIST:
+                return 1, str(ex)
 
-        config_path = os.path.join(domain_path, 'config')
-        with open(config_path, 'w') as f:
-            config = configparser.ConfigParser()
-            config.add_section(DEFAULT_SECTION)
-            config.set(DEFAULT_SECTION, 'username', username)
-            config.set(DEFAULT_SECTION, 'password', password)
-            config.set(DEFAULT_SECTION, 'port', six.text_type(port))
-            config.set(DEFAULT_SECTION, 'address', address)
-            config.set(DEFAULT_SECTION, 'domain_name', domain_name)
-            config.set(DEFAULT_SECTION, 'libvirt_uri', libvirt_uri)
+            msg = ('Failed to create domain %(domain)s. '
+                   'Error: %(error)s' % {'domain': domain_name, 'error': ex})
+            LOG.error(msg)
+            return 1, msg
 
-            if libvirt_sasl_username and libvirt_sasl_password:
-                config.set(DEFAULT_SECTION, 'libvirt_sasl_username',
-                           libvirt_sasl_username)
-                config.set(DEFAULT_SECTION, 'libvirt_sasl_password',
-                           libvirt_sasl_password)
+        try:
+            self._store_config(domain_name=domain_name,
+                               username=username,
+                               password=password,
+                               port=six.text_type(port),
+                               address=address,
+                               libvirt_uri=libvirt_uri,
+                               libvirt_sasl_username=libvirt_sasl_username,
+                               libvirt_sasl_password=libvirt_sasl_password,
+                               active=False)
 
-            config.write(f)
+        except Exception as ex:
+            self.delete(domain_name)
+            return 1, str(ex)
+
+        return 0, ''
 
     def delete(self, domain_name):
         domain_path = os.path.join(self.config_dir, domain_name)
@@ -135,82 +276,56 @@ class VirtualBMCManager(object):
 
         shutil.rmtree(domain_path)
 
+        return 0, ''
+
     def start(self, domain_name):
-        domain_path = os.path.join(self.config_dir, domain_name)
-        if not os.path.exists(domain_path):
-            raise exception.DomainNotFound(domain=domain_name)
+        try:
+            bmc_config = self._parse_config(domain_name)
 
-        bmc_config = self._parse_config(domain_name)
+        except Exception as ex:
+            return 1, str(ex)
 
-        # check libvirt's connection and domain prior to starting the BMC
-        utils.check_libvirt_connection_and_domain(
-            bmc_config['libvirt_uri'], domain_name,
-            sasl_username=bmc_config['libvirt_sasl_username'],
-            sasl_password=bmc_config['libvirt_sasl_password'])
+        if domain_name in self._running_domains:
+            return 1, ('BMC instance %(domain)s '
+                       'already running' % {'domain': domain_name})
 
-        # mask the passwords if requested
-        log_config = bmc_config.copy()
-        if not CONF['default']['show_passwords']:
-            log_config = utils.mask_dict_password(bmc_config)
+        try:
+            self._vbmc_enabled(domain_name,
+                               config=bmc_config,
+                               lets_enable=True)
 
-        LOG.debug('Starting a Virtual BMC for domain %(domain)s with the '
-                  'following configuration options: %(config)s',
-                  {'domain': domain_name,
-                   'config': ' '.join(['%s="%s"' % (k, log_config[k])
-                                       for k in log_config])})
+        except Exception as e:
+            return 1, ('Failed to start domain %(domain)s. Error: '
+                       '%(error)s' % {'domain': domain_name, 'error': e})
 
-        with utils.detach_process() as pid_num:
-            try:
-                vbmc = VirtualBMC(**bmc_config)
-            except Exception as e:
-                msg = ('Error starting a Virtual BMC for domain %(domain)s. '
-                       'Error: %(error)s' % {'domain': domain_name,
-                                             'error': e})
-                LOG.error(msg)
-                raise exception.VirtualBMCError(msg)
+        self._sync_vbmc_states()
 
-            # Save the PID number
-            pidfile_path = os.path.join(domain_path, 'pid')
-            with open(pidfile_path, 'w') as f:
-                f.write(str(pid_num))
-
-            LOG.info('Virtual BMC for domain %s started', domain_name)
-            vbmc.listen(timeout=CONF['ipmi']['session_timeout'])
+        return 0, ''
 
     def stop(self, domain_name):
-        LOG.debug('Stopping Virtual BMC for domain %s', domain_name)
-        domain_path = os.path.join(self.config_dir, domain_name)
-        if not os.path.exists(domain_path):
-            raise exception.DomainNotFound(domain=domain_name)
-
-        pidfile_path = os.path.join(domain_path, 'pid')
-        pid = None
         try:
-            with open(pidfile_path, 'r') as f:
-                pid = int(f.read())
-        except (IOError, ValueError):
-            raise exception.VirtualBMCError(
-                'Error stopping the domain %s: PID file not '
-                'found' % domain_name)
-        else:
-            os.remove(pidfile_path)
+            self._vbmc_enabled(domain_name, lets_enable=False)
 
-        try:
-            os.kill(pid, signal.SIGKILL)
-        except OSError:
-            pass
+        except Exception as ex:
+            return 1, str(ex)
+
+        self._sync_vbmc_states()
+
+        return 0, ''
 
     def list(self):
-        bmcs = []
+        rc = 0
+        tables = []
         try:
             for domain in os.listdir(self.config_dir):
                 if os.path.isdir(os.path.join(self.config_dir, domain)):
-                    bmcs.append(self._show(domain))
+                    tables.append(self._show(domain))
+
         except OSError as e:
             if e.errno == errno.EEXIST:
-                return bmcs
+                rc = 1
 
-        return bmcs
+        return rc, tables
 
     def show(self, domain_name):
-        return self._show(domain_name)
+        return 0, list(self._show(domain_name).items())

@@ -40,12 +40,13 @@ python-mimeparse==1.6.0
 python-subunit==1.0.0
 pytz==2013.6
 PyYAML==3.12
+pyzmq===14.3.1
 requests==2.14.2
 requestsexceptions==1.2.0
 restructuredtext-lint==1.1.1
 six==1.10.0
 snowballstemmer==1.2.1
-Sphinx==1.6.5
+Sphinx==1.6.2
 sphinxcontrib-websupport==1.0.1
 stestr==1.0.0
 stevedore==1.20.0
