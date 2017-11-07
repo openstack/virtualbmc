@@ -1,0 +1,15 @@
+- job:
+    name: virtualbmc-tempest-dsvm-ironic-pxe_ipmitool-src
+    parent: legacy-dsvm-base
+    run: playbooks/legacy/virtualbmc-tempest-dsvm-ironic-pxe_ipmitool-src/run.yaml
+    post-run: playbooks/legacy/virtualbmc-tempest-dsvm-ironic-pxe_ipmitool-src/post.yaml
+    timeout: 10800
+    required-projects:
+      - openstack-infra/devstack-gate
+      - openstack/ironic
+      - openstack/ironic-lib
+      - openstack/ironic-python-agent
+      - openstack/pyghmi
+      - openstack/python-ironicclient
+      - openstack/tempest
+      - openstack/virtualbmc

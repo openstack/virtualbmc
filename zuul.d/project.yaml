@@ -1,0 +1,14 @@
+- project:
+    name: openstack/virtualbmc
+    check:
+      jobs:
+        - virtualbmc-tempest-dsvm-ironic-pxe_ipmitool-src:
+            irrelevant-files:
+              - ^(test-|)requirements.txt$
+              - ^setup.cfg$
+    gate:
+      jobs:
+        - virtualbmc-tempest-dsvm-ironic-pxe_ipmitool-src:
+            irrelevant-files:
+              - ^(test-|)requirements.txt$
+              - ^setup.cfg$
