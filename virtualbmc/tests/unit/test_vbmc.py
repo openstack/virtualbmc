@@ -176,6 +176,30 @@ class VirtualBMCTestCase(base.TestCase):
         mock_libvirt_domain.return_value.destroy.assert_not_called()
         self._assert_libvirt_calls(mock_libvirt_domain, mock_libvirt_open)
 
+    def test_power_reset_is_on(self, mock_libvirt_domain, mock_libvirt_open):
+        domain = mock_libvirt_domain.return_value
+        domain.isActive.return_value = True
+        self.vbmc.power_reset()
+
+        domain.reset.assert_called_once_with()
+        self._assert_libvirt_calls(mock_libvirt_domain, mock_libvirt_open)
+
+    def test_power_reset_is_off(self, mock_libvirt_domain, mock_libvirt_open):
+        domain = mock_libvirt_domain.return_value
+        domain.isActive.return_value = False
+        self.vbmc.power_reset()
+
+        # power is already off, assert reset() wasn't invoked
+        domain.reset.assert_not_called()
+        self._assert_libvirt_calls(mock_libvirt_domain, mock_libvirt_open)
+
+    def test_power_reset_error(self, mock_libvirt_domain, mock_libvirt_open):
+        mock_libvirt_domain.side_effect = libvirt.libvirtError('boom')
+        ret = self.vbmc.power_reset()
+        self.assertEqual(0xd5, ret)
+        mock_libvirt_domain.return_value.reset.assert_not_called()
+        self._assert_libvirt_calls(mock_libvirt_domain, mock_libvirt_open)
+
     def test_power_shutdown_is_on(self, mock_libvirt_domain,
                                   mock_libvirt_open):
         domain = mock_libvirt_domain.return_value

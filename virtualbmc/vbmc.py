@@ -162,3 +162,17 @@ class VirtualBMC(bmc.Bmc):
                                             'error': e})
             # Command not supported in present state
             return 0xd5
+
+    def power_reset(self):
+        LOG.debug('Power reset called for domain %s', self.domain_name)
+        try:
+            with utils.libvirt_open(**self._conn_args) as conn:
+                domain = utils.get_libvirt_domain(conn, self.domain_name)
+                if domain.isActive():
+                    domain.reset()
+        except libvirt.libvirtError as e:
+            LOG.error('Error reseting the domain %(domain)s. '
+                      'Error: %(error)s' % {'domain': self.domain_name,
+                                            'error': e})
+            # Command not supported in present state
+            return 0xd5
