@@ -60,6 +60,10 @@ class VirtualBMC(bmc.Bmc):
                 boot_dev = boot_element.attrib.get('dev')
             return GET_BOOT_DEVICES_MAP.get(boot_dev, 0)
 
+    def _remove_boot_elements(self, parent_element):
+        for boot_element in parent_element.findall('boot'):
+            parent_element.remove(boot_element)
+
     def set_boot_device(self, bootdevice):
         LOG.debug('Set boot device called for %(domain)s with boot '
                   'device "%(bootdev)s"', {'domain': self.domain_name,
@@ -74,10 +78,14 @@ class VirtualBMC(bmc.Bmc):
                 domain = utils.get_libvirt_domain(conn, self.domain_name)
                 tree = ET.fromstring(domain.XMLDesc())
 
+                # Remove all "boot" element under "devices"
+                # They are mutually exclusive with "os/boot"
+                for device_element in tree.findall('devices/*'):
+                    self._remove_boot_elements(device_element)
+
                 for os_element in tree.findall('os'):
-                    # Remove all "boot" elements
-                    for boot_element in os_element.findall('boot'):
-                        os_element.remove(boot_element)
+                    # Remove all "boot" elements under "os"
+                    self._remove_boot_elements(os_element)
 
                     # Add a new boot element with the request boot device
                     boot_element = ET.SubElement(os_element, 'boot')
