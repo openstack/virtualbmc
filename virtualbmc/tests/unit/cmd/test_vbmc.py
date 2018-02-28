@@ -13,7 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import argparse
 import six
 import sys
 
@@ -26,7 +25,6 @@ from virtualbmc.tests.unit import utils as test_utils
 
 
 @mock.patch.object(sys, 'exit', lambda _: None)
-@mock.patch.object(argparse, 'ArgumentParser')
 class VBMCTestCase(base.TestCase):
 
     def setUp(self):
@@ -34,54 +32,39 @@ class VBMCTestCase(base.TestCase):
         self.domain = test_utils.get_domain()
 
     @mock.patch.object(manager.VirtualBMCManager, 'add')
-    def test_main_add(self, mock_add, mock_parser):
-        args = mock.Mock()
-        args.parse_args.return_value = mock.Mock(command='add', **self.domain)
-        mock_parser.return_value = args
-        vbmc.main()
-
-        args.parse_args.assert_called_once_with()
+    def test_main_add(self, mock_add):
+        argv = ['add']
+        for option, value in self.domain.items():
+            if option != 'domain_name':
+                argv.append('--' + option.replace('_', '-'))
+                argv.append(value and str(value))
+        argv.append(self.domain['domain_name'])
+        vbmc.main(argv)
         mock_add.assert_called_once_with(**self.domain)
 
     @mock.patch.object(manager.VirtualBMCManager, 'delete')
-    def test_main_delete(self, mock_delete, mock_parser):
-        args = mock.Mock()
-        args.parse_args.return_value = mock.Mock(command='delete',
-                                                 domain_names=['foo', 'bar'])
-        mock_parser.return_value = args
-        vbmc.main()
-
-        args.parse_args.assert_called_once_with()
+    def test_main_delete(self, mock_delete):
+        argv = ['delete', 'foo', 'bar']
+        vbmc.main(argv)
         expected_calls = [mock.call('foo'), mock.call('bar')]
         self.assertEqual(expected_calls, mock_delete.call_args_list)
 
     @mock.patch.object(manager.VirtualBMCManager, 'start')
-    def test_main_start(self, mock_start, mock_parser):
-        args = mock.Mock()
-        args.parse_args.return_value = mock.Mock(command='start',
-                                                 domain_name='SpongeBob')
-        mock_parser.return_value = args
-        vbmc.main()
-        args.parse_args.assert_called_once_with()
+    def test_main_start(self, mock_start):
+        argv = ['start', 'SpongeBob']
+        vbmc.main(argv)
         mock_start.assert_called_once_with('SpongeBob')
 
     @mock.patch.object(manager.VirtualBMCManager, 'stop')
-    def test_main_stop(self, mock_stop, mock_parser):
-        args = mock.Mock()
-        args.parse_args.return_value = mock.Mock(command='stop',
-                                                 domain_names=['foo', 'bar'])
-        mock_parser.return_value = args
-        vbmc.main()
-
-        args.parse_args.assert_called_once_with()
+    def test_main_stop(self, mock_stop):
+        argv = ['stop', 'foo', 'bar']
+        vbmc.main(argv)
         expected_calls = [mock.call('foo'), mock.call('bar')]
         self.assertEqual(expected_calls, mock_stop.call_args_list)
 
     @mock.patch.object(manager.VirtualBMCManager, 'list')
-    def test_main_list(self, mock_list, mock_parser):
-        args = mock.Mock()
-        args.parse_args.return_value = mock.Mock(command='list')
-        mock_parser.return_value = args
+    def test_main_list(self, mock_list):
+        argv = ['list']
 
         mock_list.return_value = [
             {'domain_name': 'node-1',
@@ -94,49 +77,45 @@ class VBMCTestCase(base.TestCase):
              'port': 123}]
 
         with mock.patch.object(sys, 'stdout', six.StringIO()) as output:
-            vbmc.main()
+            vbmc.main(argv)
             out = output.getvalue()
             expected_output = """\
 +-------------+---------+---------+------+
-| Domain name |  Status | Address | Port |
+| Domain name | Status  | Address | Port |
 +-------------+---------+---------+------+
-|    node-0   | running |    ::   | 123  |
-|    node-1   | running |    ::   | 321  |
+| node-0      | running | ::      |  123 |
+| node-1      | running | ::      |  321 |
 +-------------+---------+---------+------+
 """
             self.assertEqual(expected_output, out)
 
-        args.parse_args.assert_called_once_with()
-        mock_list.assert_called_once_with()
+        self.assertEqual(mock_list.call_count, 1)
 
     @mock.patch.object(manager.VirtualBMCManager, 'show')
-    def test_main_show(self, mock_show, mock_parser):
-        args = mock.Mock()
-        args.parse_args.return_value = mock.Mock(command='show',
-                                                 domain_name='SpongeBob')
-        mock_parser.return_value = args
+    def test_main_show(self, mock_show):
+        argv = ['show', 'SpongeBob']
+
         self.domain['status'] = 'running'
         mock_show.return_value = self.domain
 
         with mock.patch.object(sys, 'stdout', six.StringIO()) as output:
-            vbmc.main()
+            vbmc.main(argv)
             out = output.getvalue()
             expected_output = """\
 +-----------------------+-----------+
-|        Property       |   Value   |
+| Property              | Value     |
 +-----------------------+-----------+
-|        address        |     ::    |
-|      domain_name      | SpongeBob |
-| libvirt_sasl_password |    None   |
-| libvirt_sasl_username |    None   |
-|      libvirt_uri      | foo://bar |
-|        password       |    pass   |
-|          port         |    123    |
-|         status        |  running  |
-|        username       |   admin   |
+| address               | ::        |
+| domain_name           | SpongeBob |
+| libvirt_sasl_password | None      |
+| libvirt_sasl_username | None      |
+| libvirt_uri           | foo://bar |
+| password              | pass      |
+| port                  | 123       |
+| status                | running   |
+| username              | admin     |
 +-----------------------+-----------+
 """
             self.assertEqual(expected_output, out)
 
-        args.parse_args.assert_called_once_with()
-        mock_show.assert_called_once_with('SpongeBob')
+        self.assertEqual(mock_show.call_count, 1)
