@@ -29,6 +29,14 @@ DOMAIN_XML_TEMPLATE = """\
     <bootmenu enable='no'/>
     <bios useserial='yes'/>
   </os>
+  <devices>
+    <disk type='block' device='disk'>
+      <boot order='2'/>
+    </disk>
+    <interface type='network'>
+      <boot order='1'/>
+    </interface>
+  </devices>
 </domain>
 """
 
@@ -82,6 +90,7 @@ class VirtualBMCTestCase(base.TestCase):
             expected = ('<boot dev="%s" />' %
                         vbmc.SET_BOOT_DEVICES_MAP[boot_device])
             self.assertIn(expected, str(conn.defineXML.call_args))
+            self.assertEqual(1, str(conn.defineXML.call_args).count('<boot '))
             self._assert_libvirt_calls(mock_libvirt_domain, mock_libvirt_open)
 
             # reset mocks for the next iteraction
