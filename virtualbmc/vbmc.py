@@ -24,6 +24,15 @@ LOG = log.get_logger()
 POWEROFF = 0
 POWERON = 1
 
+# From the IPMI - Intelligent Platform Management Interface Specification
+# Second Generation v2.0 Document Revision 1.1 October 1, 2013
+# https://www.intel.com/content/dam/www/public/us/en/documents/product-briefs/ipmi-second-gen-interface-spec-v2-rev1-1.pdf
+#
+# Command not supported in present state
+IPMI_COMMAND_NOT_SUPPORTED = 0xd5
+# Invalid data field in request
+IPMI_INVALID_DATA = 0xcc
+
 # Boot device maps
 GET_BOOT_DEVICES_MAP = {
     'network': 4,
@@ -71,7 +80,7 @@ class VirtualBMC(bmc.Bmc):
         device = SET_BOOT_DEVICES_MAP.get(bootdevice)
         if device is None:
             # Invalid data field in request
-            return 0xcc
+            return IPMI_INVALID_DATA
 
         try:
             with utils.libvirt_open(**self._conn_args) as conn:
@@ -97,7 +106,7 @@ class VirtualBMC(bmc.Bmc):
                       'domain %(domain)s', {'bootdev': device,
                                             'domain': self.domain_name})
             # Command not supported in present state
-            return 0xd5
+            return IPMI_COMMAND_NOT_SUPPORTED
 
     def get_power_state(self):
         LOG.debug('Get power state called for domain %s', self.domain_name)
@@ -111,7 +120,7 @@ class VirtualBMC(bmc.Bmc):
                       'Error: %(error)s', {'domain': self.domain_name,
                                            'error': e})
             # Command not supported in present state
-            return 0xd5
+            return IPMI_COMMAND_NOT_SUPPORTED
 
         return POWEROFF
 
@@ -127,7 +136,7 @@ class VirtualBMC(bmc.Bmc):
                       'Error: %(error)s' % {'domain': self.domain_name,
                                             'error': e})
             # Command not supported in present state
-            return 0xd5
+            return IPMI_COMMAND_NOT_SUPPORTED
 
     def power_off(self):
         LOG.debug('Power off called for domain %s', self.domain_name)
@@ -141,7 +150,7 @@ class VirtualBMC(bmc.Bmc):
                       'Error: %(error)s' % {'domain': self.domain_name,
                                             'error': e})
             # Command not supported in present state
-            return 0xd5
+            return IPMI_COMMAND_NOT_SUPPORTED
 
     def power_on(self):
         LOG.debug('Power on called for domain %s', self.domain_name)
@@ -155,7 +164,7 @@ class VirtualBMC(bmc.Bmc):
                       'Error: %(error)s' % {'domain': self.domain_name,
                                             'error': e})
             # Command not supported in present state
-            return 0xd5
+            return IPMI_COMMAND_NOT_SUPPORTED
 
     def power_shutdown(self):
         LOG.debug('Soft power off called for domain %s', self.domain_name)
@@ -169,7 +178,7 @@ class VirtualBMC(bmc.Bmc):
                       'Error: %(error)s' % {'domain': self.domain_name,
                                             'error': e})
             # Command not supported in present state
-            return 0xd5
+            return IPMI_COMMAND_NOT_SUPPORTED
 
     def power_reset(self):
         LOG.debug('Power reset called for domain %s', self.domain_name)
@@ -183,4 +192,4 @@ class VirtualBMC(bmc.Bmc):
                       'Error: %(error)s' % {'domain': self.domain_name,
                                             'error': e})
             # Command not supported in present state
-            return 0xd5
+            return IPMI_COMMAND_NOT_SUPPORTED
