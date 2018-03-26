@@ -12,6 +12,6 @@ submitted for review via the Gerrit tool:
 
 Pull requests submitted through GitHub will be ignored.
 
-Bugs should be filed on Launchpad, not GitHub:
+Bugs should be filed in StoryBoard, not GitHub:
 
-   https://bugs.launchpad.net/virtualbmc
+   https://storyboard.openstack.org/#!/project/962
