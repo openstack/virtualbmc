@@ -25,6 +25,9 @@ class libvirt_open(object):
         self.sasl_password = sasl_password
         self.readonly = readonly
 
+    def get_conn(self):
+        return self.__enter__()
+
     def __enter__(self):
         try:
             if self.sasl_username and self.sasl_password:

@@ -10,6 +10,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import threading
 import xml.etree.ElementTree as ET
 
 import libvirt
@@ -46,6 +47,29 @@ SET_BOOT_DEVICES_MAP = {
     'optical': 'cdrom',
 }
 
+VIR_DOMAIN_ALIVE = [libvirt.VIR_DOMAIN_RUNNING, libvirt.VIR_DOMAIN_PAUSED]
+
+
+def lifecycle_callback(connection, domain, event, detail, console):
+    console.state = console._domain.state(0)
+
+
+def error_handler(unused, error):
+    # The console stream errors on VM shutdown; we don't care
+    if (error[0] == libvirt.VIR_ERR_RPC and
+            error[1] == libvirt.VIR_FROM_STREAMS):
+        return
+    LOG.error('Error: %s %s', error[0], error[1])
+
+
+def stream_callback(stream, events, console):
+    try:
+        data = console._stream.recv(1024)
+        if console.sol:
+            console.sol.send_data(data)
+    except Exception:
+        return
+
 
 class VirtualBMC(bmc.Bmc):
 
@@ -58,6 +82,15 @@ class VirtualBMC(bmc.Bmc):
         self._conn_args = {'uri': libvirt_uri,
                            'sasl_username': libvirt_sasl_username,
                            'sasl_password': libvirt_sasl_password}
+
+        self._domain = None
+        self._state = None
+        self._stream = None
+        self._run_console = False
+        self._sol_thread = None
+
+        libvirt.virEventRegisterDefaultImpl()
+        libvirt.registerErrorHandler(error_handler, None)
 
     def get_boot_device(self):
         LOG.debug('Get boot device called for %s', self.domain_name)
@@ -193,3 +226,91 @@ class VirtualBMC(bmc.Bmc):
                                             'error': e})
             # Command not supported in present state
             return IPMI_COMMAND_NOT_SUPPORTED
+
+    def is_active(self):
+        try:
+            with utils.libvirt_open(**self._conn_args) as conn:
+                domain = utils.get_libvirt_domain(conn, self.domain_name)
+                return domain.isActive()
+        except libvirt.libvirtError as e:
+            LOG.error('Error checking domain %(domain)s is alive. '
+                      'Error: %(error)s' % {'domain': self.domain_name,
+                                            'error': e})
+
+    def iohandler(self, data):
+        if self._stream:
+            self._stream.send(data)
+
+    def loop(self):
+        while self.check_console():
+            libvirt.virEventRunDefaultImpl()
+
+    def check_console(self):
+        if self._state is not None and self._state[0] in VIR_DOMAIN_ALIVE:
+            if self._stream is None:
+                self._stream = self._conn.newStream(
+                    libvirt.VIR_STREAM_NONBLOCK)
+                self._domain.openConsole(None, self._stream, 0)
+                self._stream.eventAddCallback(
+                    libvirt.VIR_STREAM_EVENT_READABLE, stream_callback, self)
+        else:
+            if self._stream:
+                self._stream.eventRemoveCallback()
+                self._stream = None
+
+        return self._run_console
+
+    def activate_payload(self, request, session):
+        """Connect VM serial console to the IPMI session
+
+        :param request: IPMI request packet
+        :type request: dict
+        :param session: IPMI session
+        :type session: ServerSession object
+        :rtype: None
+        """
+        LOG.debug('Activate payload called for domain %s', self.domain_name)
+        if self.activated:
+            LOG.error('Error activating payload the domain %(domain)s. '
+                      'Error: Payload already activated' % {
+                          'domain': self.domain_name})
+            return
+        super(VirtualBMC, self).activate_payload(request, session)
+        try:
+            self._conn = utils.libvirt_open(**self._conn_args).get_conn()
+            self._conn.domainEventRegister(lifecycle_callback, self)
+            self._domain = utils.get_libvirt_domain(self._conn,
+                                                    self.domain_name)
+            self._state = self._domain.state(0)
+            self._run_console = True
+            self._sol_thread = threading.Thread(target=self.loop)
+            self._sol_thread.start()
+        except libvirt.libvirtError as e:
+            LOG.error('Error activating payload the domain %(domain)s. '
+                      'Error: %(error)s' % {'domain': self.domain_name,
+                                            'error': e})
+            super(VirtualBMC, self).deactivate_payload(request, session)
+
+    def deactivate_payload(self, request, session):
+        """Disonnect VM serial console from the IPMI session
+
+        :param request: IPMI request packet
+        :type request: dict
+        :param session: IPMI session
+        :type session: ServerSession object
+        :rtype: None
+        """
+        LOG.debug('Deactivate payload called for domain %s', self.domain_name)
+        if not self.activated:
+            LOG.debug('Payload already deactivated')
+            return
+        try:
+            self._run_console = False
+            self._sol_thread.join()
+            super(VirtualBMC, self).deactivate_payload(request, session)
+        except libvirt.libvirtError as e:
+            LOG.error('Error deactivating payload the domain %(domain)s. '
+                      'Error: %(error)s' % {'domain': self.domain_name,
+                                            'error': e})
+        finally:
+            self._conn.close()
