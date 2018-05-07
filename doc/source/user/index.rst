@@ -31,7 +31,7 @@ Useful examples
 * Adding a new virtual BMC to control a domain called ``node-1`` that
   will listen on the port ``6230``::
 
-    $ vbmc add node-1 --port 6230
+    $ vbmc add node-0 --port 6230
 
 
 .. note::
@@ -55,8 +55,8 @@ Useful examples
     +-------------+---------+---------+------+
     | Domain name |  Status | Address | Port |
     +-------------+---------+---------+------+
-    |    node-0   | running |    ::   | 623  |
-    |    node-1   | running |    ::   | 6230 |
+    |    node-0   | running |    ::   | 6230 |
+    |    node-1   | running |    ::   | 6231 |
     +-------------+---------+---------+------+
 
 
@@ -72,7 +72,7 @@ Useful examples
     | libvirt_sasl_username |      None      |
     |      libvirt_uri      | qemu:///system |
     |        password       |      ***       |
-    |          port         |      623       |
+    |          port         |      6230      |
     |         status        |    running     |
     |        username       |     admin      |
     +-----------------------+----------------+
@@ -100,12 +100,3 @@ virtual BMC to control the libvirt domain. For example:
 * To get the current boot device::
 
     $ ipmitool -I lanplus -U admin -P password -H 127.0.0.1 -p 6230 chassis bootparam get 5
-
-* To connect the serial console (type "~." to quit)::
-
-    $ ipmitool -I lanplus -U admin -P password -H 127.0.0.1 -p 6230 sol activate
-
-  .. warning::
-
-     Old versions of pyghmi support only port 623 and 28418 for serial
-     console. Use pyghmi-1.0.32 or later.
