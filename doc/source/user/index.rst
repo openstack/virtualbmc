@@ -31,7 +31,7 @@ Useful examples
 * Adding a new virtual BMC to control a domain called ``node-1`` that
   will listen on the port ``6230``::
 
-    $ vbmc add node-0 --port 6230
+    $ vbmc add node-1 --port 6230
 
 
 .. note::
@@ -55,8 +55,8 @@ Useful examples
     +-------------+---------+---------+------+
     | Domain name |  Status | Address | Port |
     +-------------+---------+---------+------+
-    |    node-0   | running |    ::   | 6230 |
-    |    node-1   | running |    ::   | 6231 |
+    |    node-0   | running |    ::   | 623  |
+    |    node-1   | running |    ::   | 6230 |
     +-------------+---------+---------+------+
 
 
@@ -72,7 +72,7 @@ Useful examples
     | libvirt_sasl_username |      None      |
     |      libvirt_uri      | qemu:///system |
     |        password       |      ***       |
-    |          port         |      6230      |
+    |          port         |      623       |
     |         status        |    running     |
     |        username       |     admin      |
     +-----------------------+----------------+
