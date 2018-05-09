@@ -15,6 +15,7 @@ import xml.etree.ElementTree as ET
 import libvirt
 import pyghmi.ipmi.bmc as bmc
 
+from virtualbmc import exception
 from virtualbmc import log
 from virtualbmc import utils
 
@@ -116,11 +117,11 @@ class VirtualBMC(bmc.Bmc):
                 if domain.isActive():
                     return POWERON
         except libvirt.libvirtError as e:
-            LOG.error('Error getting the power state of domain %(domain)s. '
-                      'Error: %(error)s', {'domain': self.domain_name,
-                                           'error': e})
-            # Command failed, but let client to retry
-            return IPMI_COMMAND_NODE_BUSY
+            msg = ('Error getting the power state of domain %(domain)s. '
+                   'Error: %(error)s', {'domain': self.domain_name,
+                                        'error': e})
+            LOG.error(msg)
+            raise exception.VirtualBMCError(message=msg)
 
         return POWEROFF
 
