@@ -196,7 +196,7 @@ class VirtualBMCManager(object):
 
             if instance and not instance.is_alive():
                 del self._running_domains[domain_name]
-                LOG.info(
+                LOG.debug(
                     'Reaped vBMC instance for domain %(domain)s '
                     '(rc %(rc)s)' % {'domain': domain_name,
                                      'rc': instance.exitcode}
