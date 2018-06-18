@@ -98,10 +98,11 @@ class ZmqClient(object):
 
                 no_daemon = True
 
-                LOG.debug("Attempting to start vBMC daemon behind the "
-                          "scenes...")
-                LOG.debug("Please, configure your system to manage vbmcd "
-                          "by systemd!")
+                LOG.debug("Attempting to start `vbmcd` behind the "
+                          "scenes. Consider configuring your system to "
+                          "manage `vbmcd` via systemd. Automatic "
+                          "`vbmcd` start up will be removed in the "
+                          "future releases!")
 
                 # attempt to start and daemonize the server
                 if os.fork() == 0:

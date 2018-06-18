@@ -70,7 +70,7 @@ def main(argv=sys.argv[1:]):
             func()
 
         except Exception as e:
-            LOG.error('%(error)s. ', {'error': e})
+            LOG.error('%(error)s', {'error': e})
             return 1
 
         finally:
