@@ -16,6 +16,7 @@
 import libvirt
 import mock
 
+from virtualbmc import exception
 from virtualbmc.tests.unit import base
 from virtualbmc.tests.unit import utils as test_utils
 from virtualbmc import utils
@@ -132,8 +133,7 @@ class VirtualBMCTestCase(base.TestCase):
     def test_get_power_state_error(self, mock_libvirt_domain,
                                    mock_libvirt_open):
         mock_libvirt_domain.side_effect = libvirt.libvirtError('boom')
-        ret = self.vbmc.get_power_state()
-        self.assertEqual(0xC0, ret)
+        self.assertRaises(exception.VirtualBMCError, self.vbmc.get_power_state)
         self._assert_libvirt_calls(mock_libvirt_domain, mock_libvirt_open,
                                    readonly=True)
 
