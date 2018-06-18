@@ -143,14 +143,14 @@ def command_dispatcher(vbmc_manager, data_in):
         data_out = [vbmc_manager.delete(domain_name)
                     for domain_name in data_in['domain_names']]
         return {
-            'rc': max([rc for rc, msg in data_out]),
+            'rc': max(rc for rc, msg in data_out),
             'msg': [msg for rc, msg in data_out if msg],
         }
 
     elif command == 'start':
         data_out = [vbmc_manager.start(data_in['domain_name'])]
         return {
-            'rc': max([rc for rc, msg in data_out]),
+            'rc': max(rc for rc, msg in data_out),
             'msg': [msg for rc, msg in data_out if msg],
         }
 
@@ -158,7 +158,7 @@ def command_dispatcher(vbmc_manager, data_in):
         data_out = [vbmc_manager.stop(domain_name)
                     for domain_name in data_in['domain_names']]
         return {
-            'rc': max([rc for rc, msg in data_out]),
+            'rc': max(rc for rc, msg in data_out),
             'msg': [msg for rc, msg in data_out if msg],
         }
 
