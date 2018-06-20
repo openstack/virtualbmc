@@ -33,7 +33,9 @@ class VirtualBMCConfigTestCase(base.TestCase):
         self.config_dict = {'default': {'show_passwords': 'true',
                                         'config_dir': '/foo/bar/1',
                                         'pid_file': '/foo/bar/2',
-                                        'server_port': '12345'},
+                                        'server_port': '12345',
+                                        'server_spawn_wait': 3000,
+                                        'server_response_timeout': 5000},
                             'log': {'debug': 'true', 'logfile': '/foo/bar/4'},
                             'ipmi': {'session_timeout': '30'}}
 

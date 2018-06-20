@@ -50,7 +50,7 @@ class ZmqClient(object):
     and `rows` attributes pointing to lists of cell values.
     """
 
-    SERVER_TIMEOUT = 5000  # milliseconds
+    SERVER_TIMEOUT = CONF['default']['server_response_timeout']
 
     @staticmethod
     def to_dict(obj):
@@ -114,7 +114,7 @@ class ZmqClient(object):
                     vbmcd.main([])
 
                 # TODO(etingof): perform some more retries
-                time.sleep(3)
+                time.sleep(CONF['default']['server_spawn_wait'] / 1000.)
 
                 # MQ will deliver the original message to the daemon
                 # we've started

@@ -42,6 +42,8 @@ class VirtualBMCConfig(object):
                 os.path.expanduser('~'), '.vbmc', 'master.pid'
             ),
             'server_port': 50891,
+            'server_response_timeout': 5000,  # milliseconds
+            'server_spawn_wait': 3000,  # milliseconds
         },
         'log': {
             'logfile': None,
