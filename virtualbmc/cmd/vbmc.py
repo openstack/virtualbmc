@@ -52,10 +52,14 @@ class ZmqClient(object):
 
     SERVER_TIMEOUT = 5000  # milliseconds
 
+    @staticmethod
+    def to_dict(obj):
+        return {attr: getattr(obj, attr)
+                for attr in dir(obj) if not attr.startswith('_')}
+
     def communicate(self, command, args, no_daemon=False):
 
-        data_out = {attr: getattr(args, attr)
-                    for attr in dir(args) if not attr.startswith('_')}
+        data_out = self.to_dict(args)
 
         data_out.update(command=command)
 

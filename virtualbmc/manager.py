@@ -76,7 +76,7 @@ class VirtualBMCManager(object):
         config = configparser.ConfigParser()
         config.add_section(DEFAULT_SECTION)
 
-        for option, value in sorted(options.items()):
+        for option, value in options.items():
             if value is not None:
                 config.set(DEFAULT_SECTION, option, six.text_type(value))
 
@@ -170,7 +170,7 @@ class VirtualBMCManager(object):
                 if not instance:
 
                     instance = multiprocessing.Process(
-                        name='xxx',
+                        name='vbmcd-managing-domain-%s' % domain_name,
                         target=vbmc_runner,
                         args=(bmc_config,)
                     )
