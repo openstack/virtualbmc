@@ -224,8 +224,8 @@ class StartCommand(Command):
     def get_parser(self, prog_name):
         parser = super(StartCommand, self).get_parser(prog_name)
 
-        parser.add_argument('domain_name',
-                            help='The name of the virtual machine')
+        parser.add_argument('domain_names', nargs='+',
+                            help='A list of virtual machine names')
 
         return parser
 

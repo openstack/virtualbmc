@@ -146,13 +146,13 @@ class VBMCTestCase(base.TestCase):
 
         with mock.patch.object(sys, 'stdout', six.StringIO()) as output:
 
-            rc = vbmc.main(['start', 'foo'])
+            rc = vbmc.main(['start', 'foo', 'bar'])
 
             query = json.loads(mock_zmq_socket.send.call_args[0][0].decode())
 
             expected_query = {
                 'command': 'start',
-                'domain_name': 'foo'
+                'domain_names': ['foo', 'bar']
             }
 
             self.assertEqual(expected_query, query)
