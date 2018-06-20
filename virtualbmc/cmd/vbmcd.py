@@ -15,6 +15,7 @@ from __future__ import print_function
 import argparse
 import os
 import sys
+import tempfile
 
 import virtualbmc
 from virtualbmc import config as vbmc_config
@@ -63,10 +64,12 @@ def main(argv=sys.argv[1:]):
         if not os.path.exists(dir_name):
             os.makedirs(dir_name, mode=0o700)
 
-        with open(pid_file, 'w') as f:
-            f.write(str(pid))
-
         try:
+            with tempfile.NamedTemporaryFile(mode='w+t', dir=dir_name,
+                                             delete=False) as f:
+                f.write(str(pid))
+                os.rename(f.name, pid_file)
+
             func()
 
         except Exception as e:
