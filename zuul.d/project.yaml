@@ -1,4 +1,6 @@
 - project:
+    templates:
+        - release-notes-jobs
     check:
       jobs:
         - virtualbmc-tempest-dsvm-ironic-pxe_ipmitool-src
