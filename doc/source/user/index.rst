@@ -3,20 +3,22 @@ How to use VirtualBMC
 =====================
 
 For the VirtualBMC tool to operate you first need to create libvirt
-domain(s) for example, via ``virsh``. Or you can reuse any of the existing
-domains if you do not mind bringing them up and down by way of
-managing the simulated servers.
+domain(s) for example, via ``virsh``.
 
 The VirtualBMC tool is a client-server system where ``vbmcd`` server
 does all the heavy-lifting (speaks IPMI, calls libvirt) while ``vbmc``
 client is merely a command-line tool sending commands to the server and
 rendering responses to the user.
 
-You should set up your systemd to invoke the *vbmcd* server or you can
-just run ``vbmcd`` from command line if you do not need the tool running
-persistently on the system. Once the server is up and running, you can use
-the ``vbmc`` tool to configure your libvirt domains as if they were physical
-hardware servers.
+You should set up your systemd to launch the ``vbmcd`` server on system
+start up or you can just run ``vbmcd`` from command line if you do not need
+the tool running persistently on the system. Once the server is up and
+running, you can use the ``vbmc`` tool to configure your libvirt domains as
+if they were physical hardware servers.
+
+The ``vbmc`` client can only communicate with ``vbmcd`` server if both are
+running on the same host. However ``vbmcd`` can manage libvirt domains
+remotely.
 
 By this moment you should be able to have the ``ipmitool`` managing
 VirtualBMC instances over the network.
@@ -51,7 +53,14 @@ stop virtual BMCs for the virtual machines being managed over IPMI.
     $ vbmc add node-1 --port 6230
 
 
+  Alternatively, libvirt can be configured to ssh into a remote machine
+  and manage libvirt domain through ssh connection:
+
+    $ vbmc add node-1 --port 6230 \
+        --libvirt-uri qemu+ssh://username@192.168.122.1/system node-1
+
 .. note::
+
    Binding a network port number below 1025 is restricted and only users
    with privilege will be able to start a virtual BMC on those ports.
 
@@ -125,3 +134,8 @@ In the past the ``vbmc`` tool was the only part of the vBMC system. To help
 users keeping their existing server-less workflows, the ``vbmc`` tool
 attempts to spawn the ``vbmcd`` piece whenever it figures server is not
 running.
+
+.. warning::
+
+   The backward compabible behaviour will be removed in two-cycle time past
+   Queens.
