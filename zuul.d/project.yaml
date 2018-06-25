@@ -1,6 +1,7 @@
 - project:
     templates:
         - release-notes-jobs
+        - publish-openstack-sphinx-docs
     check:
       jobs:
         - virtualbmc-tempest-dsvm-ironic-pxe_ipmitool-src
