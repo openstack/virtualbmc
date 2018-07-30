@@ -10,6 +10,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import sys
 import xml.etree.ElementTree as ET
 
 import libvirt
@@ -101,7 +102,11 @@ class VirtualBMC(bmc.Bmc):
                     boot_element = ET.SubElement(os_element, 'boot')
                     boot_element.set('dev', device)
 
-                conn.defineXML(ET.tostring(tree))
+                # conn.defineXML can't take bytes but
+                # in py3 ET.tostring returns bytes unless "unicode"
+                # in py2 "unicode" is unknown so specify "utf8" instead
+                enc = sys.version_info[0] < 3 and "utf8" or "unicode"
+                conn.defineXML(ET.tostring(tree, encoding=enc))
         except libvirt.libvirtError:
             LOG.error('Failed setting the boot device  %(bootdev)s for '
                       'domain %(domain)s', {'bootdev': device,
