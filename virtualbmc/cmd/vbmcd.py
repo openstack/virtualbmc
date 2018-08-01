@@ -55,7 +55,7 @@ def main(argv=sys.argv[1:]):
         pass
 
     else:
-        LOG.error('server PID #%(pid)d still running' % {'pid': pid})
+        LOG.error('server PID #%(pid)d still running', {'pid': pid})
         return 1
 
     def wrap_with_pidfile(func, pid):

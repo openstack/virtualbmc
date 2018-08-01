@@ -128,8 +128,8 @@ class VirtualBMCManager(object):
             except Exception as ex:
                 LOG.error(
                     'Error running vBMC with configuration '
-                    '%(opts)s: %(error)s' % {'opts': show_options,
-                                             'error': ex}
+                    '%(opts)s: %(error)s', {'opts': show_options,
+                                            'error': ex}
                 )
                 return
 
@@ -139,8 +139,8 @@ class VirtualBMCManager(object):
             except Exception as ex:
                 LOG.info(
                     'Shutdown vBMC for domain %(domain)s, cause '
-                    '%(error)s' % {'domain': show_options['domain_name'],
-                                   'error': ex}
+                    '%(error)s', {'domain': show_options['domain_name'],
+                                  'error': ex}
                 )
                 return
 
@@ -182,7 +182,7 @@ class VirtualBMCManager(object):
 
                     LOG.info(
                         'Started vBMC instance for domain '
-                        '%(domain)s' % {'domain': domain_name}
+                        '%(domain)s', {'domain': domain_name}
                     )
 
             else:
@@ -191,15 +191,15 @@ class VirtualBMCManager(object):
                         instance.terminate()
                         LOG.info(
                             'Terminated vBMC instance for domain '
-                            '%(domain)s' % {'domain': domain_name}
+                            '%(domain)s', {'domain': domain_name}
                         )
 
             if instance and not instance.is_alive():
                 del self._running_domains[domain_name]
                 LOG.debug(
                     'Reaped vBMC instance for domain %(domain)s '
-                    '(rc %(rc)s)' % {'domain': domain_name,
-                                     'rc': instance.exitcode}
+                    '(rc %(rc)s)', {'domain': domain_name,
+                                    'rc': instance.exitcode}
                 )
 
     def _show(self, domain_name):

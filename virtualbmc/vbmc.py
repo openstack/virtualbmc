@@ -62,7 +62,8 @@ class VirtualBMC(bmc.Bmc):
                            'sasl_password': libvirt_sasl_password}
 
     def get_boot_device(self):
-        LOG.debug('Get boot device called for %s', self.domain_name)
+        LOG.debug('Get boot device called for %(domain)s',
+                  {'domain': self.domain_name})
         with utils.libvirt_open(readonly=True, **self._conn_args) as conn:
             domain = utils.get_libvirt_domain(conn, self.domain_name)
             boot_element = ET.fromstring(domain.XMLDesc()).find('.//os/boot')
@@ -115,7 +116,8 @@ class VirtualBMC(bmc.Bmc):
             return IPMI_COMMAND_NODE_BUSY
 
     def get_power_state(self):
-        LOG.debug('Get power state called for domain %s', self.domain_name)
+        LOG.debug('Get power state called for domain %(domain)s',
+                  {'domain': self.domain_name})
         try:
             with utils.libvirt_open(readonly=True, **self._conn_args) as conn:
                 domain = utils.get_libvirt_domain(conn, self.domain_name)
@@ -123,15 +125,16 @@ class VirtualBMC(bmc.Bmc):
                     return POWERON
         except libvirt.libvirtError as e:
             msg = ('Error getting the power state of domain %(domain)s. '
-                   'Error: %(error)s', {'domain': self.domain_name,
-                                        'error': e})
+                   'Error: %(error)s' % {'domain': self.domain_name,
+                                         'error': e})
             LOG.error(msg)
             raise exception.VirtualBMCError(message=msg)
 
         return POWEROFF
 
     def pulse_diag(self):
-        LOG.debug('Power diag called for domain %s', self.domain_name)
+        LOG.debug('Power diag called for domain %(domain)s',
+                  {'domain': self.domain_name})
         try:
             with utils.libvirt_open(**self._conn_args) as conn:
                 domain = utils.get_libvirt_domain(conn, self.domain_name)
@@ -139,13 +142,14 @@ class VirtualBMC(bmc.Bmc):
                     domain.injectNMI()
         except libvirt.libvirtError as e:
             LOG.error('Error powering diag the domain %(domain)s. '
-                      'Error: %(error)s' % {'domain': self.domain_name,
-                                            'error': e})
+                      'Error: %(error)s', {'domain': self.domain_name,
+                                           'error': e})
             # Command failed, but let client to retry
             return IPMI_COMMAND_NODE_BUSY
 
     def power_off(self):
-        LOG.debug('Power off called for domain %s', self.domain_name)
+        LOG.debug('Power off called for domain %(domain)s',
+                  {'domain': self.domain_name})
         try:
             with utils.libvirt_open(**self._conn_args) as conn:
                 domain = utils.get_libvirt_domain(conn, self.domain_name)
@@ -153,13 +157,14 @@ class VirtualBMC(bmc.Bmc):
                     domain.destroy()
         except libvirt.libvirtError as e:
             LOG.error('Error powering off the domain %(domain)s. '
-                      'Error: %(error)s' % {'domain': self.domain_name,
-                                            'error': e})
+                      'Error: %(error)s', {'domain': self.domain_name,
+                                           'error': e})
             # Command failed, but let client to retry
             return IPMI_COMMAND_NODE_BUSY
 
     def power_on(self):
-        LOG.debug('Power on called for domain %s', self.domain_name)
+        LOG.debug('Power on called for domain %(domain)s',
+                  {'domain': self.domain_name})
         try:
             with utils.libvirt_open(**self._conn_args) as conn:
                 domain = utils.get_libvirt_domain(conn, self.domain_name)
@@ -167,13 +172,14 @@ class VirtualBMC(bmc.Bmc):
                     domain.create()
         except libvirt.libvirtError as e:
             LOG.error('Error powering on the domain %(domain)s. '
-                      'Error: %(error)s' % {'domain': self.domain_name,
-                                            'error': e})
+                      'Error: %(error)s', {'domain': self.domain_name,
+                                           'error': e})
             # Command failed, but let client to retry
             return IPMI_COMMAND_NODE_BUSY
 
     def power_shutdown(self):
-        LOG.debug('Soft power off called for domain %s', self.domain_name)
+        LOG.debug('Soft power off called for domain %(domain)s',
+                  {'domain': self.domain_name})
         try:
             with utils.libvirt_open(**self._conn_args) as conn:
                 domain = utils.get_libvirt_domain(conn, self.domain_name)
@@ -181,13 +187,14 @@ class VirtualBMC(bmc.Bmc):
                     domain.shutdown()
         except libvirt.libvirtError as e:
             LOG.error('Error soft powering off the domain %(domain)s. '
-                      'Error: %(error)s' % {'domain': self.domain_name,
-                                            'error': e})
+                      'Error: %(error)s', {'domain': self.domain_name,
+                                           'error': e})
             # Command failed, but let client to retry
             return IPMI_COMMAND_NODE_BUSY
 
     def power_reset(self):
-        LOG.debug('Power reset called for domain %s', self.domain_name)
+        LOG.debug('Power reset called for domain %(domain)s',
+                  {'domain': self.domain_name})
         try:
             with utils.libvirt_open(**self._conn_args) as conn:
                 domain = utils.get_libvirt_domain(conn, self.domain_name)
@@ -195,7 +202,7 @@ class VirtualBMC(bmc.Bmc):
                     domain.reset()
         except libvirt.libvirtError as e:
             LOG.error('Error reseting the domain %(domain)s. '
-                      'Error: %(error)s' % {'domain': self.domain_name,
-                                            'error': e})
+                      'Error: %(error)s', {'domain': self.domain_name,
+                                           'error': e})
             # Command not supported in present state
             return IPMI_COMMAND_NODE_BUSY

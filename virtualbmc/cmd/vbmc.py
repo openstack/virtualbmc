@@ -310,9 +310,9 @@ class VirtualBMCApp(App):
         self.zmq = ZmqClient()
 
     def clean_up(self, cmd, result, err):
-        self.LOG.debug('clean_up %s', cmd.__class__.__name__)
+        self.LOG.debug('clean_up %(name)s', {'name': cmd.__class__.__name__})
         if err:
-            self.LOG.debug('got an error: %s', err)
+            self.LOG.debug('got an error: %(error)s', {'error': err})
 
 
 def main(argv=sys.argv[1:]):
