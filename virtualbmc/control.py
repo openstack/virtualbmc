@@ -77,7 +77,8 @@ def main_loop(vbmc_manager, handle_command):
                 )
                 continue
 
-            LOG.debug('Command request data: %(request)s', {'cmd': data_in})
+            LOG.debug('Command request data: %(request)s',
+                      {'request': data_in})
 
             try:
                 data_out = handle_command(vbmc_manager, data_in)
@@ -90,7 +91,8 @@ def main_loop(vbmc_manager, handle_command):
                     'msg': [msg]
                 }
 
-            LOG.debug('Command response data: %(response)s', {'cmd': data_out})
+            LOG.debug('Command response data: %(response)s',
+                      {'response': data_out})
 
             try:
                 message = json.dumps(data_out)
