@@ -14,9 +14,18 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+import logging
+
 from oslotest import base
+
+from virtualbmc import log as vbmc_log
 
 
 class TestCase(base.BaseTestCase):
-
     """Test case base class for all unit tests."""
+    def setUp(self):
+        super(TestCase, self).setUp()
+        self._level = vbmc_log.get_logger().getEffectiveLevel()
+        vbmc_log.get_logger().setLevel(logging.DEBUG)
+        self.addCleanup(lambda level: vbmc_log.get_logger().setLevel(level),
+                        self._level)
