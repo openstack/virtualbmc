@@ -88,7 +88,8 @@ class ZmqClient(object):
                         data_in = socket.recv()
                         break
 
-                    raise zmq.ZMQError('Server response timed out')
+                    raise zmq.ZMQError(
+                        zmq.RCVTIMEO, msg='Server response timed out')
 
                 except zmq.ZMQError as ex:
                     LOG.debug('Server at %(port)s connection error: '
