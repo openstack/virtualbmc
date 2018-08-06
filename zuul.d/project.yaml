@@ -9,8 +9,10 @@
     check:
       jobs:
         - virtualbmc-tempest-ironic-ipmi-iscsi
+        - virtualbmc-tempest-ironic-ipmi-iscsi-python2
         - openstack-tox-lower-constraints
     gate:
       jobs:
         - virtualbmc-tempest-ironic-ipmi-iscsi
+        - virtualbmc-tempest-ironic-ipmi-iscsi-python2
         - openstack-tox-lower-constraints
