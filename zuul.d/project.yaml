@@ -4,9 +4,9 @@
         - publish-openstack-sphinx-docs
     check:
       jobs:
-        - virtualbmc-tempest-dsvm-ironic-pxe_ipmitool-src
+        - virtualbmc-tempest-ironic-ipmi-iscsi
         - openstack-tox-lower-constraints
     gate:
       jobs:
-        - virtualbmc-tempest-dsvm-ironic-pxe_ipmitool-src
+        - virtualbmc-tempest-ironic-ipmi-iscsi
         - openstack-tox-lower-constraints

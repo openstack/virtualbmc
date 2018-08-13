@@ -1,5 +1,5 @@
 - job:
-    name: virtualbmc-tempest-dsvm-ironic-pxe_ipmitool-src
+    name: virtualbmc-tempest-ironic-ipmi-iscsi
     parent: legacy-dsvm-base
     irrelevant-files:
       - ^.*\.rst$
@@ -17,6 +17,6 @@
       - openstack/pyghmi
       - openstack/python-ironicclient
       - openstack/virtualbmc
-    run: playbooks/legacy/virtualbmc-tempest-dsvm-ironic-pxe_ipmitool-src/run.yaml
-    post-run: playbooks/legacy/virtualbmc-tempest-dsvm-ironic-pxe_ipmitool-src/post.yaml
+    run: playbooks/legacy/virtualbmc-tempest-ironic-ipmi-iscsi/run.yaml
+    post-run: playbooks/legacy/virtualbmc-tempest-ironic-ipmi-iscsi/post.yaml
     timeout: 10800
