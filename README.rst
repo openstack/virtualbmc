@@ -28,9 +28,6 @@ Supported IPMI commands
   # Get the current boot device
   ipmitool -I lanplus -U admin -P password -H 127.0.0.1 chassis bootparam get 5
 
-  # Get the current boot device
-  ipmitool -I lanplus -U admin -P password -H 127.0.0.1 chassis bootparam get 5
-
 Team and repository tags
 ------------------------
 
