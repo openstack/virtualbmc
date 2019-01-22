@@ -1,0 +1,27 @@
+- job:
+    name: virtualbmc-tempest-ironic-ipmi-iscsi
+    parent: ironic-base
+    irrelevant-files:
+      - ^.*\.rst$
+      - ^doc/.*$
+      - ^virtualbmc/tests/.*$
+      - ^setup.cfg$
+      - ^test-requirements.txt$
+      - ^tools/.*$
+      - ^tox.ini$
+    timeout: 10800
+    required-projects:
+      - openstack/ironic-lib
+      - openstack/python-ironicclient
+    vars:
+      devstack_localrc:
+        USE_PYTHON3: True
+        EBTABLES_RACE_FIX: True
+        IRONIC_DEFAULT_RESCUE_INTERFACE: ""
+
+- job:
+    name: virtualbmc-tempest-ironic-ipmi-iscsi-python2
+    parent: virtualbmc-tempest-ironic-ipmi-iscsi
+    vars:
+      devstack_localrc:
+        USE_PYTHON3: False
