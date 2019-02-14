@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    Ignores instance "start" command if instance appears to be running. This
+    helps preserving backward-compatible behaviour, as previous implementation
+    has required the user to explicitly "start" enabled instances. With current
+    virtualbmc, only the master process needs to be started.

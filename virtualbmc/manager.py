@@ -286,8 +286,14 @@ class VirtualBMCManager(object):
             return 1, str(ex)
 
         if domain_name in self._running_domains:
-            return 1, ('BMC instance %(domain)s '
-                       'already running' % {'domain': domain_name})
+
+            self._sync_vbmc_states()
+
+            if domain_name in self._running_domains:
+                LOG.warning(
+                    'BMC instance %(domain)s already running, ignoring '
+                    '"start" command' % {'domain': domain_name})
+                return 0, ''
 
         try:
             self._vbmc_enabled(domain_name,
