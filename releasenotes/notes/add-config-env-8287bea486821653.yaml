@@ -1,0 +1,5 @@
+features:
+  - |
+    Adds the ability to override default configuration file location by
+    exporting the ``$VIRTUALBMC_CONFIG`` variable, pointing to the desired
+    config file, into ``vbmcd`` and ``vbmc`` processes environment.

@@ -10,6 +10,11 @@ does all the heavy-lifting (speaks IPMI, calls libvirt) while ``vbmc``
 client is merely a command-line tool sending commands to the server and
 rendering responses to the user.
 
+Both tools can optionally consume optional configuration file, which
+defaults to ``$HOME/.vbmc/virtualbmc.conf``,
+``/etc/virtualbmc/virtualbmc.conf``, but can be overridden with the
+``VIRTUALBMC_CONFIG`` environment variable.
+
 You should set up your systemd to launch the ``vbmcd`` server on system
 start up or you can just run ``vbmcd`` from command line if you do not need
 the tool running persistently on the system. Once the server is up and
