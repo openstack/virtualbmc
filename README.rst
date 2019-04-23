@@ -42,7 +42,7 @@ Project resources
 ~~~~~~~~~~~~~~~~~
 
 * Documentation: https://docs.openstack.org/virtualbmc/latest
-* Source: https://git.openstack.org/cgit/openstack/virtualbmc
+* Source: https://opendev.org/openstack/virtualbmc
 * Bugs: https://storyboard.openstack.org/#!/project/openstack/virtualbmc
 * Release Notes: https://docs.openstack.org/releasenotes/virtualbmc/
 
