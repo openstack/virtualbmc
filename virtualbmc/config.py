@@ -19,15 +19,13 @@ from virtualbmc import utils
 __all__ = ['get_config']
 
 _CONFIG_FILE_PATHS = (
+    os.environ.get('VIRTUALBMC_CONFIG', ''),
     os.path.join(os.path.expanduser('~'), '.vbmc', 'virtualbmc.conf'),
     '/etc/virtualbmc/virtualbmc.conf')
 
+CONFIG_FILE = next((x for x in _CONFIG_FILE_PATHS if os.path.exists(x)), '')
+
 CONFIG = None
-CONFIG_FILE = ''
-for config in _CONFIG_FILE_PATHS:
-    if os.path.exists(config):
-        CONFIG_FILE = config
-        break
 
 
 class VirtualBMCConfig(object):
