@@ -11,8 +11,7 @@
       - ^tox.ini$
     timeout: 10800
     required-projects:
-      - openstack/ironic-lib
-      - openstack/python-ironicclient
+      - openstack/virtualbmc
     vars:
       devstack_localrc:
         USE_PYTHON3: True
