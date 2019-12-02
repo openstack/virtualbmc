@@ -44,7 +44,6 @@ reno==2.5.0
 requests==2.14.2
 requestsexceptions==1.2.0
 restructuredtext-lint==1.1.1
-six==1.10.0
 snowballstemmer==1.2.1
 Sphinx==1.6.2
 sphinxcontrib-websupport==1.0.1

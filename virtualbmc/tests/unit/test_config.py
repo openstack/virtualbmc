@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import configparser
 import os
 
 import mock
-from six.moves import configparser
 
 from virtualbmc import config
 from virtualbmc.tests.unit import base

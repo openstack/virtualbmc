@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import builtins
 import os
 
 import mock
-from six.moves import builtins
 
 from virtualbmc.cmd import vbmcd
 from virtualbmc import control

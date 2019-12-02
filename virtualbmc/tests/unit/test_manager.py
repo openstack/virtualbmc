@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import builtins
+import configparser
 import copy
 import errno
 import multiprocessing
@@ -20,8 +22,6 @@ import os
 import shutil
 
 import mock
-from six.moves import builtins
-from six.moves import configparser
 
 from virtualbmc import exception
 from virtualbmc import manager
