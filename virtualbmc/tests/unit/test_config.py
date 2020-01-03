@@ -72,6 +72,9 @@ class VirtualBMCConfigTestCase(base.TestCase):
 
         expected = self.config_dict.copy()
         expected['default']['show_passwords'] = True
+        expected['default']['server_response_timeout'] = 5000
+        expected['default']['server_spawn_wait'] = 3000
+        expected['default']['server_port'] = 12345
         expected['log']['debug'] = True
         expected['ipmi']['session_timeout'] = 30
         self.assertEqual(expected, self.vbmc_config._conf_dict)
