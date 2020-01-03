@@ -75,6 +75,15 @@ class VirtualBMCConfig(object):
         self._conf_dict['default']['show_passwords'] = utils.str2bool(
             self._conf_dict['default']['show_passwords'])
 
+        self._conf_dict['default']['server_port'] = int(
+            self._conf_dict['default']['server_port'])
+
+        self._conf_dict['default']['server_spawn_wait'] = int(
+            self._conf_dict['default']['server_spawn_wait'])
+
+        self._conf_dict['default']['server_response_timeout'] = int(
+            self._conf_dict['default']['server_response_timeout'])
+
         self._conf_dict['ipmi']['session_timeout'] = int(
             self._conf_dict['ipmi']['session_timeout'])
 
