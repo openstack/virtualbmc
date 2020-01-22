@@ -42,6 +42,7 @@ class VirtualBMCConfig(object):
             'server_port': 50891,
             'server_response_timeout': 5000,  # milliseconds
             'server_spawn_wait': 3000,  # milliseconds
+            'kubevirt': 'false',
         },
         'log': {
             'logfile': None,

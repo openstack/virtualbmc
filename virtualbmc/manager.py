@@ -24,6 +24,8 @@ from virtualbmc import log
 from virtualbmc import utils
 from virtualbmc.vbmc import VirtualBMC
 
+import pprint
+
 LOG = log.get_logger()
 
 # BMC status
@@ -39,7 +41,7 @@ class VirtualBMCManager(object):
 
     VBMC_OPTIONS = ['username', 'password', 'address', 'port',
                     'domain_name', 'libvirt_uri', 'libvirt_sasl_username',
-                    'libvirt_sasl_password', 'active']
+                    'libvirt_sasl_password', 'active', 'namespace', 'name']
 
     def __init__(self):
         super(VirtualBMCManager, self).__init__()
@@ -231,10 +233,11 @@ class VirtualBMCManager(object):
         print("namespace: ", namespace)
         print("name: ", name)
         # check libvirt's connection and if domain exist prior to adding it
-        utils.check_libvirt_connection_and_domain(
-            libvirt_uri, domain_name,
-            sasl_username=libvirt_sasl_username,
-            sasl_password=libvirt_sasl_password)
+        if CONF['default']['kubevirt'] != 'true':
+            utils.check_libvirt_connection_and_domain(
+                libvirt_uri, domain_name,
+                sasl_username=libvirt_sasl_username,
+                sasl_password=libvirt_sasl_password)
 
         domain_path = os.path.join(self.config_dir, domain_name)
 

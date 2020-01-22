@@ -30,7 +30,6 @@ LOG = log.get_logger()
 
 TIMER_PERIOD = 3000  # milliseconds
 
-
 def main_loop(vbmc_manager, handle_command):
     """Server part of the CLI control interface
 
@@ -55,6 +54,7 @@ def main_loop(vbmc_manager, handle_command):
         socket = context.socket(zmq.REP)
         socket.setsockopt(zmq.LINGER, 5)
         socket.bind("tcp://127.0.0.1:%s" % server_port)
+        #socket.bind("tcp://0.0.0.0:%s" % server_port)
 
         poller = zmq.Poller()
         poller.register(socket, zmq.POLLIN)
