@@ -13,9 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import io
 import json
 import mock
-import six
 import sys
 
 import zmq
@@ -42,7 +42,7 @@ class VBMCTestCase(base.TestCase):
         mock_zmq_poller = mock_zmq_poller.return_value
         mock_zmq_poller.poll.return_value = {}
 
-        with mock.patch.object(sys, 'stderr', six.StringIO()) as output:
+        with mock.patch.object(sys, 'stderr', io.StringIO()) as output:
             rc = vbmc.main(['--no-daemon',
                             'add', '--username', 'ironic', 'bar'])
 
@@ -68,7 +68,7 @@ class VBMCTestCase(base.TestCase):
             mock_zmq_socket: zmq.POLLIN
         }
 
-        with mock.patch.object(sys, 'stdout', six.StringIO()) as output:
+        with mock.patch.object(sys, 'stdout', io.StringIO()) as output:
             rc = vbmc.main(['add', '--username', 'ironic', 'bar'])
 
             query = json.loads(mock_zmq_socket.send.call_args[0][0].decode())
@@ -109,7 +109,7 @@ class VBMCTestCase(base.TestCase):
             mock_zmq_socket: zmq.POLLIN
         }
 
-        with mock.patch.object(sys, 'stdout', six.StringIO()) as output:
+        with mock.patch.object(sys, 'stdout', io.StringIO()) as output:
 
             rc = vbmc.main(['delete', 'foo', 'bar'])
 
@@ -144,7 +144,7 @@ class VBMCTestCase(base.TestCase):
             mock_zmq_socket: zmq.POLLIN
         }
 
-        with mock.patch.object(sys, 'stdout', six.StringIO()) as output:
+        with mock.patch.object(sys, 'stdout', io.StringIO()) as output:
 
             rc = vbmc.main(['start', 'foo', 'bar'])
 
@@ -179,7 +179,7 @@ class VBMCTestCase(base.TestCase):
             mock_zmq_socket: zmq.POLLIN
         }
 
-        with mock.patch.object(sys, 'stdout', six.StringIO()) as output:
+        with mock.patch.object(sys, 'stdout', io.StringIO()) as output:
 
             rc = vbmc.main(['stop', 'foo', 'bar'])
 
@@ -222,7 +222,7 @@ class VBMCTestCase(base.TestCase):
             mock_zmq_socket: zmq.POLLIN
         }
 
-        with mock.patch.object(sys, 'stdout', six.StringIO()) as output:
+        with mock.patch.object(sys, 'stdout', io.StringIO()) as output:
 
             rc = vbmc.main(['list'])
 
@@ -269,7 +269,7 @@ class VBMCTestCase(base.TestCase):
             mock_zmq_socket: zmq.POLLIN
         }
 
-        with mock.patch.object(sys, 'stdout', six.StringIO()) as output:
+        with mock.patch.object(sys, 'stdout', io.StringIO()) as output:
 
             rc = vbmc.main(['show', 'domain0'])
 

@@ -10,13 +10,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import configparser
 import errno
 import multiprocessing
 import os
 import shutil
-
-import six
-from six.moves import configparser
 
 from virtualbmc import config as vbmc_config
 from virtualbmc import exception
@@ -80,7 +78,7 @@ class VirtualBMCManager(object):
 
         for option, value in options.items():
             if value is not None:
-                config.set(DEFAULT_SECTION, option, six.text_type(value))
+                config.set(DEFAULT_SECTION, option, str(value))
 
         config_path = os.path.join(
             self.config_dir, options['domain_name'], 'config'
@@ -256,7 +254,7 @@ class VirtualBMCManager(object):
             self._store_config(domain_name=domain_name,
                                username=username,
                                password=password,
-                               port=six.text_type(port),
+                               port=str(port),
                                address=address,
                                libvirt_uri=libvirt_uri,
                                libvirt_sasl_username=libvirt_sasl_username,

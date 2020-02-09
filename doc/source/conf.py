@@ -29,6 +29,10 @@ try:
 except ImportError:
     openstackdocstheme = None
 
+# openstackdocstheme options
+repository_name = 'openstack/virtualbmc'
+use_storyboard = True
+
 # autodoc generation is a bit aggressive and a nuisance when doing heavy
 # text edit cycles.
 # execute "export SPHINX_DEBUG=1" in your terminal to disable
@@ -40,7 +44,6 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'virtualbmc'
 copyright = u'2016, OpenStack Foundation'
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
@@ -66,15 +69,15 @@ else:
     html_theme = 'default'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = '%sdoc' % project
+htmlhelp_basename = 'virtualbmcdoc'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass
 # [howto/manual]).
 latex_documents = [
     ('index',
-     '%s.tex' % project,
-     u'%s Documentation' % project,
+     'doc-virtualbmc.tex',
+     u'VirtualBMC Documentation',
      u'OpenStack Foundation', 'manual'),
 ]
 

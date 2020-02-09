@@ -10,7 +10,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import sys
 import xml.etree.ElementTree as ET
 
 import libvirt
@@ -165,6 +164,7 @@ class VirtualBMC(bmc.Bmc):
                 self._set_boot_order(vm.spec.template.spec.domain.devices.disks)
 
             api.replace_namespaced_virtual_machine(vm,self.namespace,self.name)
+
             return IPMI_COMMAND_NODE_BUSY
 
     def _remove_boot_order(self, devices):

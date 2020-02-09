@@ -14,13 +14,6 @@
       - openstack/virtualbmc
     vars:
       devstack_localrc:
-        USE_PYTHON3: True
         EBTABLES_RACE_FIX: True
         IRONIC_DEFAULT_RESCUE_INTERFACE: ""
 
-- job:
-    name: virtualbmc-tempest-ironic-ipmi-iscsi-python2
-    parent: virtualbmc-tempest-ironic-ipmi-iscsi
-    vars:
-      devstack_localrc:
-        USE_PYTHON3: False
