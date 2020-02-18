@@ -12,7 +12,6 @@
 
 import json
 import logging
-import os
 import sys
 import time
 
@@ -28,6 +27,7 @@ from virtualbmc.cmd import vbmcd
 from virtualbmc import config as vbmc_config
 from virtualbmc.exception import VirtualBMCError
 from virtualbmc import log
+from virtualbmc import utils
 
 CONF = vbmc_config.get_config()
 
@@ -110,9 +110,10 @@ class ZmqClient(object):
                           "future releases!")
 
                 # attempt to start and daemonize the server
-                if os.fork() == 0:
-                    # this will also fork and detach properly
-                    vbmcd.main([])
+                with utils.detach_process() as pid:
+                    if pid == 0:
+                        # NOTE(etingof): this child will never return
+                        vbmcd.main(['--foreground'])
 
                 # TODO(etingof): perform some more retries
                 time.sleep(CONF['default']['server_spawn_wait'] / 1000.)

@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Properly closes standard I/O streams to prevent shell-piped processes from
+    hanging infinitely on a dead pipe.
