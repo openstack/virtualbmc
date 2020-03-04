@@ -124,7 +124,7 @@ class VirtualBMCManager(object):
                 vbmc = VirtualBMC(**bmc_config)
 
             except Exception as ex:
-                LOG.error(
+                LOG.exception(
                     'Error running vBMC with configuration '
                     '%(opts)s: %(error)s', {'opts': show_options,
                                             'error': ex}
@@ -135,7 +135,7 @@ class VirtualBMCManager(object):
                 vbmc.listen(timeout=CONF['ipmi']['session_timeout'])
 
             except Exception as ex:
-                LOG.info(
+                LOG.exception(
                     'Shutdown vBMC for domain %(domain)s, cause '
                     '%(error)s', {'domain': show_options['domain_name'],
                                   'error': ex}
@@ -299,6 +299,7 @@ class VirtualBMCManager(object):
                                lets_enable=True)
 
         except Exception as e:
+            LOG.exception('Failed to start domain %s', domain_name)
             return 1, ('Failed to start domain %(domain)s. Error: '
                        '%(error)s' % {'domain': domain_name, 'error': e})
 
@@ -311,6 +312,7 @@ class VirtualBMCManager(object):
             self._vbmc_enabled(domain_name, lets_enable=False)
 
         except Exception as ex:
+            LOG.exception('Failed to stop domain %s', domain_name)
             return 1, str(ex)
 
         self._sync_vbmc_states()

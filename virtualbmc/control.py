@@ -59,6 +59,8 @@ def main_loop(vbmc_manager, handle_command):
         poller = zmq.Poller()
         poller.register(socket, zmq.POLLIN)
 
+        LOG.info('Started vBMC server on port %s', server_port)
+
         while True:
             socks = dict(poller.poll(timeout=TIMER_PERIOD))
             if socket in socks and socks[socket] == zmq.POLLIN:
@@ -212,7 +214,9 @@ def application():
 
     try:
         main_loop(vbmc_manager, command_dispatcher)
-
+    except KeyboardInterrupt:
+        LOG.info('Got keyboard interrupt, exiting')
+        vbmc_manager.periodic(shutdown=True)
     except Exception as ex:
         LOG.error(
             'Control server error: %(error)s', {'error': ex}
