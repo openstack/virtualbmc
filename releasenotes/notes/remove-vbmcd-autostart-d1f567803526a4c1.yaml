@@ -1,0 +1,6 @@
+---
+upgrade:
+  - |
+    Removes the backward compatibility feature of ``vbmc`` to automatically
+    start up ``vbmcd`` daemon process if it is not running. From now on,
+    ``vbmcd`` should be started by systemd or some other mechanism.
