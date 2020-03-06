@@ -27,6 +27,7 @@ LOG = log.get_logger()
 # BMC status
 RUNNING = 'running'
 DOWN = 'down'
+ERROR = 'error'
 
 DEFAULT_SECTION = 'VirtualBMC'
 
@@ -165,7 +166,7 @@ class VirtualBMCManager(object):
 
             if lets_enable:
 
-                if not instance:
+                if not instance or not instance.is_alive():
 
                     instance = multiprocessing.Process(
                         name='vbmcd-managing-domain-%s' % domain_name,
@@ -183,6 +184,13 @@ class VirtualBMCManager(object):
                         '%(domain)s', {'domain': domain_name}
                     )
 
+                if not instance.is_alive():
+                    LOG.debug(
+                        'Found dead vBMC instance for domain %(domain)s '
+                        '(rc %(rc)s)', {'domain': domain_name,
+                                        'rc': instance.exitcode}
+                    )
+
             else:
                 if instance:
                     if instance.is_alive():
@@ -192,13 +200,7 @@ class VirtualBMCManager(object):
                             '%(domain)s', {'domain': domain_name}
                         )
 
-            if instance and not instance.is_alive():
-                del self._running_domains[domain_name]
-                LOG.debug(
-                    'Reaped vBMC instance for domain %(domain)s '
-                    '(rc %(rc)s)', {'domain': domain_name,
-                                    'rc': instance.exitcode}
-                )
+                    self._running_domains.pop(domain_name, None)
 
     def _show(self, domain_name):
         bmc_config = self._parse_config(domain_name)
@@ -214,6 +216,8 @@ class VirtualBMCManager(object):
 
         if instance and instance.is_alive():
             show_options['status'] = RUNNING
+        elif instance and not instance.is_alive():
+            show_options['status'] = ERROR
         else:
             show_options['status'] = DOWN
 

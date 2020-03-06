@@ -1,0 +1,5 @@
+features:
+  - |
+    Added ``error`` status to ``vbmc list`` and ``vbmc start`` commands
+    output. If the instance is failing to start, such instance will be shown
+    as ``error`` rather than being ``down``.
