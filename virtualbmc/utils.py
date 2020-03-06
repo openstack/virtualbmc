@@ -10,8 +10,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import libvirt
 import os
+import sys
+
+import libvirt
 
 from virtualbmc import exception
 
@@ -97,12 +99,14 @@ def mask_dict_password(dictionary, secret='***'):
 class detach_process(object):
     """Detach the process from its parent and session."""
 
-    def _fork(self):
+    def _fork(self, parent_exits):
         try:
-            ret = os.fork()
-            if ret > 0:
-                # Exit the parent process
+            pid = os.fork()
+            if pid > 0 and parent_exits:
                 os._exit(0)
+
+            return pid
+
         except OSError as e:
             raise exception.DetachProcessError(error=e)
 
@@ -133,13 +137,29 @@ class detach_process(object):
             raise exception.DetachProcessError(error=error)
 
     def __enter__(self):
-        self._fork()
+        pid = self._fork(parent_exits=False)
+        if pid > 0:
+            return pid
+
         os.setsid()
-        self._fork()
+
+        self._fork(parent_exits=True)
+
         self._change_root_directory()
         self._change_file_creation_mask()
 
-        return os.getpid()
+        sys.stdout.flush()
+        sys.stderr.flush()
+
+        si = open(os.devnull, 'r')
+        so = open(os.devnull, 'a+')
+        se = open(os.devnull, 'a+')
+
+        os.dup2(si.fileno(), sys.stdin.fileno())
+        os.dup2(so.fileno(), sys.stdout.fileno())
+        os.dup2(se.fileno(), sys.stderr.fileno())
+
+        return pid
 
     def __exit__(self, type, value, traceback):
         pass

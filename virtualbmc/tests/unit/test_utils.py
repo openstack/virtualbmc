@@ -114,60 +114,49 @@ class LibvirtUtilsTestCase(base.TestCase):
         self._test_libvirt_open_sasl(readonly=True)
 
 
-@mock.patch.object(os, 'getpid')
-@mock.patch.object(os, 'umask')
-@mock.patch.object(os, 'chdir')
-@mock.patch.object(os, 'setsid')
-@mock.patch.object(os, '_exit')
-@mock.patch.object(os, 'fork')
+@mock.patch.object(utils, 'os')
 class DetachProcessUtilsTestCase(base.TestCase):
 
-    def test_detach_process(self, mock_fork, mock__exit, mock_setsid,
-                            mock_chdir, mock_umask, mock_getpid):
+    def test_detach_process(self, mock_os):
 
         # 2nd value > 0 so _exit get called and we can assert that we've
         # killed the parent's process
-        mock_fork.side_effect = (0, 999)
+        mock_os.fork.side_effect = (0, 999)
+        mock_os.devnull = os.devnull
 
-        mock_getpid.return_value = 123
         with utils.detach_process() as pid:
-            self.assertEqual(123, pid)
+            self.assertEqual(0, pid)
 
         # assert fork() has been called twice
         expected_fork_calls = [mock.call()] * 2
-        self.assertEqual(expected_fork_calls, mock_fork.call_args_list)
+        self.assertEqual(expected_fork_calls, mock_os.fork.call_args_list)
 
-        mock_setsid.assert_called_once_with()
-        mock_chdir.assert_called_once_with('/')
-        mock_umask.assert_called_once_with(0)
-        mock__exit.assert_called_once_with(0)
-        mock_getpid.assert_called_once_with()
+        mock_os.setsid.assert_called_once_with()
+        mock_os.chdir.assert_called_once_with('/')
+        mock_os.umask.assert_called_once_with(0)
+        mock_os._exit.assert_called_once_with(0)
 
-    def test_detach_process_fork_fail(self, mock_fork, mock__exit, mock_setsid,
-                                      mock_chdir, mock_umask, mock_getpid):
+    def test_detach_process_fork_fail(self, mock_os):
         error_msg = 'Kare-a-tay!'
-        mock_fork.side_effect = OSError(error_msg)
+        mock_os.fork.side_effect = OSError(error_msg)
 
         with self.assertRaisesRegex(exception.DetachProcessError, error_msg):
             with utils.detach_process():
                 pass
 
-        mock_fork.assert_called_once_with()
-        self.assertFalse(mock_setsid.called)
-        self.assertFalse(mock_chdir.called)
-        self.assertFalse(mock_umask.called)
-        self.assertFalse(mock__exit.called)
-        self.assertFalse(mock_getpid.called)
+        mock_os.fork.assert_called_once_with()
+        self.assertFalse(mock_os.setsid.called)
+        self.assertFalse(mock_os.chdir.called)
+        self.assertFalse(mock_os.umask.called)
+        self.assertFalse(mock_os._exit.called)
 
-    def test_detach_process_chdir_fail(self, mock_fork, mock__exit,
-                                       mock_setsid, mock_chdir, mock_umask,
-                                       mock_getpid):
+    def test_detach_process_chdir_fail(self, mock_os):
         # 2nd value > 0 so _exit get called and we can assert that we've
         # killed the parent's process
-        mock_fork.side_effect = (0, 999)
+        mock_os.fork.side_effect = (0, 999)
 
         error_msg = 'Fish paste!'
-        mock_chdir.side_effect = Exception(error_msg)
+        mock_os.chdir.side_effect = Exception(error_msg)
 
         with self.assertRaisesRegex(exception.DetachProcessError, error_msg):
             with utils.detach_process():
@@ -175,23 +164,20 @@ class DetachProcessUtilsTestCase(base.TestCase):
 
         # assert fork() has been called twice
         expected_fork_calls = [mock.call()] * 2
-        self.assertEqual(expected_fork_calls, mock_fork.call_args_list)
+        self.assertEqual(expected_fork_calls, mock_os.fork.call_args_list)
 
-        mock_setsid.assert_called_once_with()
-        mock_chdir.assert_called_once_with('/')
-        mock__exit.assert_called_once_with(0)
-        self.assertFalse(mock_umask.called)
-        self.assertFalse(mock_getpid.called)
+        mock_os.setsid.assert_called_once_with()
+        mock_os.chdir.assert_called_once_with('/')
+        mock_os._exit.assert_called_once_with(0)
+        self.assertFalse(mock_os.umask.called)
 
-    def test_detach_process_umask_fail(self, mock_fork, mock__exit,
-                                       mock_setsid, mock_chdir, mock_umask,
-                                       mock_getpid):
+    def test_detach_process_umask_fail(self, mock_os):
         # 2nd value > 0 so _exit get called and we can assert that we've
         # killed the parent's process
-        mock_fork.side_effect = (0, 999)
+        mock_os.fork.side_effect = (0, 999)
 
         error_msg = 'Barnacles!'
-        mock_umask.side_effect = Exception(error_msg)
+        mock_os.umask.side_effect = Exception(error_msg)
 
         with self.assertRaisesRegex(exception.DetachProcessError, error_msg):
             with utils.detach_process():
@@ -199,10 +185,9 @@ class DetachProcessUtilsTestCase(base.TestCase):
 
         # assert fork() has been called twice
         expected_fork_calls = [mock.call()] * 2
-        self.assertEqual(expected_fork_calls, mock_fork.call_args_list)
+        self.assertEqual(expected_fork_calls, mock_os.fork.call_args_list)
 
-        mock_setsid.assert_called_once_with()
-        mock_chdir.assert_called_once_with('/')
-        mock__exit.assert_called_once_with(0)
-        mock_umask.assert_called_once_with(0)
-        self.assertFalse(mock_getpid.called)
+        mock_os.setsid.assert_called_once_with()
+        mock_os.chdir.assert_called_once_with('/')
+        mock_os._exit.assert_called_once_with(0)
+        mock_os.umask.assert_called_once_with(0)
