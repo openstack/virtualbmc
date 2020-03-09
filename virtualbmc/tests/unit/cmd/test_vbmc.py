@@ -37,7 +37,8 @@ class VBMCTestCase(base.TestCase):
     def test_server_timeout(self, mock_zmq_poller, mock_zmq_context):
         expected_rc = 1
         expected_output = (
-            'Server at 50891 connection error: Server response timed out\n')
+            'Failed to connect to the vbmcd server on port 50891, error: '
+            'Server response timed out\n')
 
         mock_zmq_poller = mock_zmq_poller.return_value
         mock_zmq_poller.poll.return_value = {}

@@ -87,8 +87,9 @@ class ZmqClient(object):
                         zmq.RCVTIMEO, msg='Server response timed out')
 
             except zmq.ZMQError as ex:
-                msg = ('Server at %(port)s connection error: '
-                       '%(error)s' % {'port': server_port, 'error': ex})
+                msg = ('Failed to connect to the vbmcd server on port '
+                       '%(port)s, error: %(error)s' % {'port': server_port,
+                                                       'error': ex})
                 LOG.error(msg)
                 raise VirtualBMCError(msg)
 
