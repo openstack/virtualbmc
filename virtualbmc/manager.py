@@ -15,6 +15,7 @@ import errno
 import multiprocessing
 import os
 import shutil
+import signal
 
 from virtualbmc import config as vbmc_config
 from virtualbmc import exception
@@ -113,6 +114,9 @@ class VirtualBMCManager(object):
         """
 
         def vbmc_runner(bmc_config):
+            # The manager process installs a signal handler for SIGTERM to
+            # propagate it to children. Return to the default handler.
+            signal.signal(signal.SIGTERM, signal.SIG_DFL)
 
             show_passwords = CONF['default']['show_passwords']
 
