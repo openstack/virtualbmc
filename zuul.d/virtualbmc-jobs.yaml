@@ -14,6 +14,7 @@
       - openstack/virtualbmc
     vars:
       devstack_localrc:
+        IRONIC_RAMDISK_TYPE: tinyipa
         EBTABLES_RACE_FIX: True
         IRONIC_DEFAULT_RESCUE_INTERFACE: ""
 
