@@ -97,8 +97,8 @@ class VirtualBMCManager(object):
         except Exception:
             currently_enabled = False
 
-        if (lets_enable is not None and
-                lets_enable != currently_enabled):
+        if (lets_enable is not None
+                and lets_enable != currently_enabled):
             config.update(active=lets_enable)
             self._store_config(**config)
             currently_enabled = lets_enable
