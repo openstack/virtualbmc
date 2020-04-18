@@ -14,7 +14,7 @@
 #    under the License.
 
 import libvirt
-import mock
+from unittest import mock
 
 from virtualbmc import exception
 from virtualbmc.tests.unit import base

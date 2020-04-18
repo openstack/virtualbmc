@@ -15,8 +15,8 @@
 
 import io
 import json
-import mock
 import sys
+from unittest import mock
 
 import zmq
 

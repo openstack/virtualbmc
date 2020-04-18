@@ -20,8 +20,8 @@ import errno
 import multiprocessing
 import os
 import shutil
+from unittest import mock
 
-import mock
 
 from virtualbmc import exception
 from virtualbmc import manager

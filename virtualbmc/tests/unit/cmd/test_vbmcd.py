@@ -15,8 +15,8 @@
 
 import builtins
 import os
+from unittest import mock
 
-import mock
 
 from virtualbmc.cmd import vbmcd
 from virtualbmc import control

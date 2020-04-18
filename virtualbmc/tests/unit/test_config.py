@@ -15,8 +15,8 @@
 
 import configparser
 import os
+from unittest import mock
 
-import mock
 
 from virtualbmc import config
 from virtualbmc.tests.unit import base
