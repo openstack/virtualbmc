@@ -17,7 +17,6 @@ import json
 import os
 from unittest import mock
 
-
 import zmq
 
 from virtualbmc import control
