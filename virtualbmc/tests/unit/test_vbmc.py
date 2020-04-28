@@ -13,8 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import libvirt
 from unittest import mock
+
+import libvirt
 
 from virtualbmc import exception
 from virtualbmc.tests.unit import base

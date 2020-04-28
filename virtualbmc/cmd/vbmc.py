@@ -18,7 +18,6 @@ from cliff.app import App
 from cliff.command import Command
 from cliff.commandmanager import CommandManager
 from cliff.lister import Lister
-
 import zmq
 
 import virtualbmc
