@@ -26,11 +26,12 @@ mock==2.0.0
 mox3==0.20.0
 openstackdocstheme==2.2.1
 os-client-config==1.28.0
-os-testr==1.0.0
 oslotest==3.2.0
 pbr==2.0.0
 pep8==1.5.7
 prettytable==0.7.2
+pycodestyle==2.5.0
+pycrypto==2.6.1
 pyflakes==0.8.1
 pyghmi==1.0.22
 Pygments==2.2.0
@@ -45,6 +46,7 @@ reno==3.1.0
 requests==2.14.2
 requestsexceptions==1.2.0
 restructuredtext-lint==1.1.1
+six==1.14.0
 snowballstemmer==1.2.1
 Sphinx==2.0.0
 sphinxcontrib-websupport==1.0.1
