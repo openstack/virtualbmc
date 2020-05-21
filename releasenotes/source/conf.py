@@ -68,6 +68,10 @@ master_doc = 'index'
 copyright = '2018, Ironic Developers'
 author = 'Ironic Developers'
 
+# openstackdocstheme options
+openstackdocs_repo_name = 'openstack/virtualbmc'
+openstackdocs_use_storyboard = True
+
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
@@ -90,7 +94,7 @@ language = None
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'native'
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
