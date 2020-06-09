@@ -22,7 +22,6 @@ libvirt-python==3.7.0
 linecache2==1.0.0
 MarkupSafe==1.0
 mccabe==0.2.1
-mock==2.0.0
 mox3==0.20.0
 openstackdocstheme==2.2.1
 os-client-config==1.28.0
