@@ -66,7 +66,7 @@ stop virtual BMCs for the virtual machines being managed over IPMI.
   and manage libvirt domain through ssh connection::
 
     $ vbmc add node-1 --port 6230 \
-        --libvirt-uri qemu+ssh://username@192.168.122.1/system node-1
+        --libvirt-uri qemu+ssh://username@192.168.122.1/system
 
 .. note::
 
