@@ -3,7 +3,7 @@
 # process, which may cause wedges in the gate later.
 
 pbr!=2.1.0,>=2.0.0 # Apache-2.0
-libvirt-python!=4.1.0,>=3.7.0 # LGPLv2+
-pyghmi>=1.0.22 # Apache-2.0
+libvirt-python>=6.0.0 # LGPLv2+
+pyghmi>=1.2.0 # Apache-2.0
 cliff!=2.9.0,>=2.8.0 # Apache-2.0
-pyzmq>=14.3.1  # LGPL+BSD
+pyzmq>=19.0.0  # LGPL+BSD
