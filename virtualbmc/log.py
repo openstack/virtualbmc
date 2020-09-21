@@ -17,7 +17,7 @@ from virtualbmc import config
 
 __all__ = ['get_logger']
 
-DEFAULT_LOG_FORMAT = ('%(asctime)s.%(msecs)03d %(process)d %(levelname)s '
+DEFAULT_LOG_FORMAT = ('%(asctime)s %(process)d %(levelname)s '
                       '%(name)s [-] %(message)s')
 LOGGER = None
 
