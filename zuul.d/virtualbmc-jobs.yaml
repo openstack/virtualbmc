@@ -17,3 +17,5 @@
         EBTABLES_RACE_FIX: True
         IRONIC_DEFAULT_BOOT_OPTION: netboot
         IRONIC_DEFAULT_RESCUE_INTERFACE: ""
+      devstack_services:
+        dstat: false
