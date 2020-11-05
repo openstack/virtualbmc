@@ -28,6 +28,14 @@ CONF = vbmc_config.get_config()
 
 
 def main(argv=sys.argv[1:]):
+    """
+    Main entry point.
+
+    Args:
+        argv: (str): write your description
+        sys: (int): write your description
+        argv: (str): write your description
+    """
     parser = argparse.ArgumentParser(
         prog='VirtualBMC server',
         description='A virtual BMC server for controlling virtual instances',
@@ -57,6 +65,13 @@ def main(argv=sys.argv[1:]):
         return 1
 
     def wrap_with_pidfile(func, pid):
+        """
+        Wraps a pidfile in a pidfile.
+
+        Args:
+            func: (callable): write your description
+            pid: (str): write your description
+        """
         dir_name = os.path.dirname(pid_file)
 
         if not os.path.exists(dir_name):

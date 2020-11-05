@@ -31,6 +31,16 @@ class VBMCControlServerTestCase(base.TestCase):
     @mock.patch.object(os, 'remove')
     def test_control_loop(self, mock_rm, mock_path, mock_zmq_poller,
                           mock_zmq_context):
+        """
+        The control loop.
+
+        Args:
+            self: (todo): write your description
+            mock_rm: (todo): write your description
+            mock_path: (str): write your description
+            mock_zmq_poller: (todo): write your description
+            mock_zmq_context: (todo): write your description
+        """
         mock_path.exists.return_value = False
 
         mock_vbmc_manager = mock.MagicMock()

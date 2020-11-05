@@ -28,6 +28,12 @@ _CONFIG_FILE = '/foo/.vbmc/virtualbmc.conf'
 class VirtualBMCConfigTestCase(base.TestCase):
 
     def setUp(self):
+        """
+        Set the connection parameters.
+
+        Args:
+            self: (todo): write your description
+        """
         super(VirtualBMCConfigTestCase, self).setUp()
         self.vbmc_config = config.VirtualBMCConfig()
         self.config_dict = {'default': {'show_passwords': 'true',
@@ -44,6 +50,15 @@ class VirtualBMCConfigTestCase(base.TestCase):
     @mock.patch.object(configparser, 'ConfigParser')
     def test_initialize(self, mock_configparser, mock__as_dict,
                         mock__validate):
+        """
+        Initialize the mock.
+
+        Args:
+            self: (todo): write your description
+            mock_configparser: (todo): write your description
+            mock__as_dict: (todo): write your description
+            mock__validate: (todo): write your description
+        """
         config = mock_configparser.return_value
         self.vbmc_config.initialize()
 
@@ -53,6 +68,13 @@ class VirtualBMCConfigTestCase(base.TestCase):
 
     @mock.patch.object(os.path, 'exists')
     def test__as_dict(self, mock_exists):
+        """
+        Test if the configuration exists.
+
+        Args:
+            self: (todo): write your description
+            mock_exists: (todo): write your description
+        """
         mock_exists.side_effect = (False, True)
         config = mock.Mock()
         config.sections.side_effect = ['default', 'log', 'ipmi'],
@@ -67,6 +89,12 @@ class VirtualBMCConfigTestCase(base.TestCase):
         self.assertEqual(self.config_dict, ret)
 
     def test_validate(self):
+        """
+        Validate the vbmc configuration.
+
+        Args:
+            self: (todo): write your description
+        """
         self.vbmc_config._conf_dict = self.config_dict
         self.vbmc_config._validate()
 

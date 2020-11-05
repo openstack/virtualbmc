@@ -206,6 +206,11 @@ def application():
     vbmc_manager.periodic()
 
     def kill_children(*args):
+        """
+        Kill all child threads.
+
+        Args:
+        """
         vbmc_manager.periodic(shutdown=True)
         sys.exit(0)
 
