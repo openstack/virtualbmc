@@ -53,12 +53,25 @@ class VirtualBMCConfig(object):
     }
 
     def initialize(self):
+        """
+        Initialize the configuration.
+
+        Args:
+            self: (todo): write your description
+        """
         config = configparser.ConfigParser()
         config.read(CONFIG_FILE)
         self._conf_dict = self._as_dict(config)
         self._validate()
 
     def _as_dict(self, config):
+        """
+        Convert config dictionary to a dictionary.
+
+        Args:
+            self: (todo): write your description
+            config: (todo): write your description
+        """
         conf_dict = self.DEFAULTS
         for section in config.sections():
             if section not in conf_dict:
@@ -69,6 +82,12 @@ class VirtualBMCConfig(object):
         return conf_dict
 
     def _validate(self):
+        """
+        Validate the configuration.
+
+        Args:
+            self: (todo): write your description
+        """
         self._conf_dict['log']['debug'] = utils.str2bool(
             self._conf_dict['log']['debug'])
 
@@ -88,10 +107,22 @@ class VirtualBMCConfig(object):
             self._conf_dict['ipmi']['session_timeout'])
 
     def __getitem__(self, key):
+        """
+        Returns the value of a key.
+
+        Args:
+            self: (todo): write your description
+            key: (str): write your description
+        """
         return self._conf_dict[key]
 
 
 def get_config():
+    """
+    Returns the global configuration.
+
+    Args:
+    """
     global CONFIG
     if CONFIG is None:
         CONFIG = VirtualBMCConfig()

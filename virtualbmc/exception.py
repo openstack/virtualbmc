@@ -15,6 +15,13 @@ class VirtualBMCError(Exception):
     message = None
 
     def __init__(self, message=None, **kwargs):
+        """
+        Initialize message
+
+        Args:
+            self: (todo): write your description
+            message: (str): write your description
+        """
         if self.message and kwargs:
             self.message = self.message % kwargs
         else:

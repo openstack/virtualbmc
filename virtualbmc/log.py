@@ -25,6 +25,14 @@ LOGGER = None
 class VirtualBMCLogger(logging.Logger):
 
     def __init__(self, debug=False, logfile=None):
+        """
+        Initialize the logger.
+
+        Args:
+            self: (todo): write your description
+            debug: (bool): write your description
+            logfile: (todo): write your description
+        """
         logging.Logger.__init__(self, 'VirtualBMC')
         try:
             if logfile is not None:
@@ -47,6 +55,11 @@ class VirtualBMCLogger(logging.Logger):
 
 
 def get_logger():
+    """
+    Return a logger instance.
+
+    Args:
+    """
     global LOGGER
     if LOGGER is None:
         log_conf = config.get_config()['log']

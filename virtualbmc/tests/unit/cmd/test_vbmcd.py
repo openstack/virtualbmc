@@ -30,6 +30,15 @@ class VBMCDTestCase(base.TestCase):
     @mock.patch.object(os, 'kill')
     @mock.patch.object(os, 'unlink')
     def test_main_foreground(self, mock_unlink, mock_kill, mock_open):
+        """
+        Test whether the mock is running the mock.
+
+        Args:
+            self: (todo): write your description
+            mock_unlink: (todo): write your description
+            mock_kill: (todo): write your description
+            mock_open: (todo): write your description
+        """
         with mock.patch.object(control, 'application') as mock_ml:
             mock_kill.side_effect = OSError()
             vbmcd.main(['--foreground'])
@@ -41,6 +50,15 @@ class VBMCDTestCase(base.TestCase):
     @mock.patch.object(os, 'kill')
     @mock.patch.object(os, 'unlink')
     def test_main_background(self, mock_unlink, mock_kill, mock_open):
+        """
+        Perform the test.
+
+        Args:
+            self: (todo): write your description
+            mock_unlink: (todo): write your description
+            mock_kill: (todo): write your description
+            mock_open: (todo): write your description
+        """
         with mock.patch.object(utils, 'detach_process') as mock_dp:
             with mock.patch.object(control, 'application') as mock_ml:
                 mock_kill.side_effect = OSError()

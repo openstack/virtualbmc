@@ -15,6 +15,11 @@
 
 
 def get_domain(**kwargs):
+    """
+    Returns a domain object.
+
+    Args:
+    """
     domain = {'domain_name': kwargs.get('domain_name', 'SpongeBob'),
               'address': kwargs.get('address', '::'),
               'port': kwargs.get('port', 123),
