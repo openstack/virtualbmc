@@ -6,7 +6,7 @@ cliff==2.8.0
 cmd2==0.8.0
 coverage==4.0
 doc8==0.6.0
-docutils==0.11
+docutils==0.12
 dulwich==0.15.0
 extras==1.0.0
 fixtures==3.0.0
