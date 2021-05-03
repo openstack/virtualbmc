@@ -7,7 +7,7 @@
       - release-notes-jobs-python3
     check:
       jobs:
-        - virtualbmc-tempest-ironic-ipmi-iscsi
+        - virtualbmc-tempest-ironic
     gate:
       jobs:
-        - virtualbmc-tempest-ironic-ipmi-iscsi
+        - virtualbmc-tempest-ironic
