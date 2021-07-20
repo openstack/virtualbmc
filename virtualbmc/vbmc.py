@@ -102,6 +102,12 @@ class VirtualBMC(bmc.Bmc):
                     boot_element = ET.SubElement(os_element, 'boot')
                     boot_element.set('dev', device)
 
+                    # When setting boot device to network, we want to make
+                    # sure we can fall back to harddrive.
+                    if device == 'network':
+                        second_boot_element = ET.SubElement(os_element, 'boot')
+                        second_boot_element.set('dev', 'hd')
+
                 conn.defineXML(ET.tostring(tree, encoding="unicode"))
         except libvirt.libvirtError:
             LOG.error('Failed setting the boot device  %(bootdev)s for '
