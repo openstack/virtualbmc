@@ -201,3 +201,23 @@ class VirtualBMC(bmc.Bmc):
                                            'error': e})
             # Command not supported in present state
             return IPMI_COMMAND_NODE_BUSY
+
+    def power_cycle(self):
+        LOG.debug('Power cycle called for domain %(domain)s',
+                  {'domain': self.domain_name})
+        try:
+            with utils.libvirt_open(**self._conn_args) as conn:
+                domain = utils.get_libvirt_domain(conn, self.domain_name)
+                if domain.isActive():
+                    domain.destroy()
+                    domain.create()
+                else:
+                    domain.create()
+
+        except libvirt.libvirtError as e:
+            LOG.error('Error power cycling the domain %(domain)s. '
+                      'Error: %(error)s', {'domain': self.domain_name,
+                                           'error': e})
+
+            # Command failed, but let client to retry
+            return IPMI_COMMAND_NODE_BUSY
