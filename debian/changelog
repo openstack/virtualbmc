@@ -1,0 +1,4 @@
+virtualbmc (2.2.2) UNRELEASED; urgency=medium
+  * Initial version of Debian package.
+
+ -- Kenneth Østrup <kpostrup@gmail.com>  Tue, 20 Jul 2021 13:55:59 +0200

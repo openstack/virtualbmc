@@ -1,0 +1,14 @@
+Source: virtualbmc
+Priority: optional
+Maintainer: Kenneth Østrup <kpostrup@gmail.com>
+Build-Depends: debhelper (>= 11), dh-python, python3-dev, python3-libvirt, python3-pyghmi, python3-oslotest, python3-zmq
+Standards-Version: 3.9.4
+
+Package: virtualbmc
+Architecture: all
+Section: utils
+Depends: python3, python3-libvirt, python3-pyghmi, python3-cliff
+Description: Simulates a Baseboard Management Controller (BMC)
+ by exposing IPMI responder to the network and talking to libvirt at
+ the host vBMC is running at to manipulate virtual machines which pretend
+ to be bare metal servers.

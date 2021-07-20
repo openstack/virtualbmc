@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+ 
+#export DH_VERBOSE=1
+export PYBUILD_NAME=virtualbmc
+ 
+%:
+	# This line must be indented with a tab and not spaces!
+	dh $@ --with-systemd --with python3 --buildsystem=pybuild
+
+override_dh_auto_test:
+	: # skip tests
+
+override_dh_installinit:
+	dh_installinit --noscripts
