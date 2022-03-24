@@ -115,7 +115,7 @@ class VirtualBMC(bmc.Bmc):
                     boot_element.set('dev', device)
 
                 conn.defineXML(ET.tostring(tree, encoding="unicode"))
-        except libvirt.libvirtError:
+        except Exception:
             LOG.error('Failed setting the boot device %(bootdev)s for '
                       'domain %(domain)s', {'bootdev': device,
                                             'domain': self.domain_name})
@@ -130,7 +130,7 @@ class VirtualBMC(bmc.Bmc):
                 domain = utils.get_libvirt_domain(conn, self.domain_name)
                 if domain.isActive():
                     return POWERON
-        except libvirt.libvirtError as e:
+        except Exception as e:
             msg = ('Error getting the power state of domain %(domain)s. '
                    'Error: %(error)s' % {'domain': self.domain_name,
                                          'error': e})
@@ -147,7 +147,7 @@ class VirtualBMC(bmc.Bmc):
                 domain = utils.get_libvirt_domain(conn, self.domain_name)
                 if domain.isActive():
                     domain.injectNMI()
-        except libvirt.libvirtError as e:
+        except Exception as e:
             LOG.error('Error powering diag the domain %(domain)s. '
                       'Error: %(error)s', {'domain': self.domain_name,
                                            'error': e})
@@ -162,7 +162,7 @@ class VirtualBMC(bmc.Bmc):
                 domain = utils.get_libvirt_domain(conn, self.domain_name)
                 if domain.isActive():
                     domain.destroy()
-        except libvirt.libvirtError as e:
+        except Exception as e:
             LOG.error('Error powering off the domain %(domain)s. '
                       'Error: %(error)s', {'domain': self.domain_name,
                                            'error': e})
@@ -177,7 +177,7 @@ class VirtualBMC(bmc.Bmc):
                 domain = utils.get_libvirt_domain(conn, self.domain_name)
                 if not domain.isActive():
                     domain.create()
-        except libvirt.libvirtError as e:
+        except Exception as e:
             LOG.error('Error powering on the domain %(domain)s. '
                       'Error: %(error)s', {'domain': self.domain_name,
                                            'error': e})
@@ -192,7 +192,7 @@ class VirtualBMC(bmc.Bmc):
                 domain = utils.get_libvirt_domain(conn, self.domain_name)
                 if domain.isActive():
                     domain.shutdown()
-        except libvirt.libvirtError as e:
+        except Exception as e:
             LOG.error('Error soft powering off the domain %(domain)s. '
                       'Error: %(error)s', {'domain': self.domain_name,
                                            'error': e})
@@ -207,7 +207,7 @@ class VirtualBMC(bmc.Bmc):
                 domain = utils.get_libvirt_domain(conn, self.domain_name)
                 if domain.isActive():
                     domain.reset()
-        except libvirt.libvirtError as e:
+        except Exception as e:
             LOG.error('Error reseting the domain %(domain)s. '
                       'Error: %(error)s', {'domain': self.domain_name,
                                            'error': e})
