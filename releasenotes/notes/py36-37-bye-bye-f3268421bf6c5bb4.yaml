@@ -1,0 +1,6 @@
+---
+upgrade:
+  - |
+    Virtualbmc does not support Python 3.6 and 3.7 anymore, please use
+    version 3.8 or higher.
+
