@@ -60,6 +60,17 @@ class VirtualBMC(bmc.Bmc):
                            'sasl_username': libvirt_sasl_username,
                            'sasl_password': libvirt_sasl_password}
 
+    # Copied from nova/virt/libvirt/guest.py
+    def get_xml_desc(self, domain, dump_sensitive=False):
+        """Returns xml description of guest.
+
+        :param domain: The libvirt domain to call
+        :param dump_sensitive: Dump security sensitive information
+        :returns string: XML description of the guest
+        """
+        flags = dump_sensitive and libvirt.VIR_DOMAIN_XML_SECURE or 0
+        return domain.XMLDesc(flags=flags)
+
     def get_boot_device(self):
         LOG.debug('Get boot device called for %(domain)s',
                   {'domain': self.domain_name})
@@ -87,7 +98,8 @@ class VirtualBMC(bmc.Bmc):
         try:
             with utils.libvirt_open(**self._conn_args) as conn:
                 domain = utils.get_libvirt_domain(conn, self.domain_name)
-                tree = ET.fromstring(domain.XMLDesc())
+                tree = ET.fromstring(
+                    self.get_xml_desc(domain, dump_sensitive=True))
 
                 # Remove all "boot" element under "devices"
                 # They are mutually exclusive with "os/boot"
