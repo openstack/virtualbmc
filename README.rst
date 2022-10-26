@@ -13,6 +13,9 @@ Overview
 
 A virtual BMC for controlling virtual machines using IPMI commands.
 
+This software is intended for CI and development use only. Please do not run
+VirtualBMC in a production environment for any reason.
+
 Installation
 ~~~~~~~~~~~~
 
