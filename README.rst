@@ -46,12 +46,8 @@ Project resources
 
 * Documentation: https://docs.openstack.org/virtualbmc/latest
 * Source: https://opendev.org/openstack/virtualbmc
-* Bugs: https://storyboard.openstack.org/#!/project/openstack/virtualbmc
+* Bugs: https://bugs.launchpad.net/virtualbmc
 * Release Notes: https://docs.openstack.org/releasenotes/virtualbmc/
-
-Project status, bugs, and requests for feature enhancements (RFEs) are tracked
-in StoryBoard:
-https://storyboard.openstack.org/#!/project/openstack/virtualbmc
 
 For information on how to contribute to VirtualBMC, see
 https://docs.openstack.org/virtualbmc/latest/contributor

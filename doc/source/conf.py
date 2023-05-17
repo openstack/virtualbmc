@@ -32,7 +32,7 @@ except ImportError:
 # openstackdocstheme options
 openstackdocs_repo_name = 'openstack/virtualbmc'
 openstackdocs_pdf_link = True
-openstackdocs_use_storyboard = True
+openstackdocs_use_storyboard = False
 
 # autodoc generation is a bit aggressive and a nuisance when doing heavy
 # text edit cycles.
