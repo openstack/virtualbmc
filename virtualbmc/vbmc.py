@@ -116,7 +116,7 @@ class VirtualBMC(bmc.Bmc):
 
                 conn.defineXML(ET.tostring(tree, encoding="unicode"))
         except libvirt.libvirtError:
-            LOG.error('Failed setting the boot device  %(bootdev)s for '
+            LOG.error('Failed setting the boot device %(bootdev)s for '
                       'domain %(domain)s', {'bootdev': device,
                                             'domain': self.domain_name})
             # Command failed, but let client to retry
