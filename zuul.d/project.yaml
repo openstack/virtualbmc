@@ -8,6 +8,8 @@
     check:
       jobs:
         - virtualbmc-tempest-ironic
+        - virtualbmc-tox-codespell:
+            voting: false
     gate:
       jobs:
         - virtualbmc-tempest-ironic

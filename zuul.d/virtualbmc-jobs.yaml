@@ -25,3 +25,10 @@
 - job:
     name: virtualbmc-tempest-ironic-ipmi-iscsi
     parent: virtualbmc-tempest-ironic
+
+- job:
+    name: virtualbmc-tox-codespell
+    parent: openstack-tox
+    timeout: 7200
+    vars:
+      tox_envlist: codespell
