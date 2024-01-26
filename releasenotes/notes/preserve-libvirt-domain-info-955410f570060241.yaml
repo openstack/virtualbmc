@@ -6,5 +6,5 @@ security:
     <https://storyboard.openstack.org/#!/story/2010382>`_.
 fixes:
   - |
-    Fixes an issue where secure fields were accidently lost in the Libvirt
+    Fixes an issue where secure fields were accidentally lost in the Libvirt
     domain XML document.
