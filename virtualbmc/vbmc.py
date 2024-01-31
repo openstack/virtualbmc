@@ -208,7 +208,7 @@ class VirtualBMC(bmc.Bmc):
                 if domain.isActive():
                     domain.reset()
         except Exception as e:
-            LOG.error('Error reseting the domain %(domain)s. '
+            LOG.error('Error resetting the domain %(domain)s. '
                       'Error: %(error)s', {'domain': self.domain_name,
                                            'error': e})
             # Command not supported in present state

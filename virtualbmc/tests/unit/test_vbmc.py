@@ -78,7 +78,7 @@ class VirtualBMCTestCase(base.TestCase):
             self._assert_libvirt_calls(mock_libvirt_domain, mock_libvirt_open,
                                        readonly=True)
 
-            # reset mocks for the next iteraction
+            # reset mocks for the next iteration
             mock_libvirt_domain.reset_mock()
             mock_libvirt_open.reset_mock()
 
@@ -95,7 +95,7 @@ class VirtualBMCTestCase(base.TestCase):
             self.assertEqual(1, str(conn.defineXML.call_args).count('<boot '))
             self._assert_libvirt_calls(mock_libvirt_domain, mock_libvirt_open)
 
-            # reset mocks for the next iteraction
+            # reset mocks for the next iteration
             mock_libvirt_domain.reset_mock()
             mock_libvirt_open.reset_mock()
 
