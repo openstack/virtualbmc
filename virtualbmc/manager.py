@@ -35,6 +35,40 @@ DEFAULT_SECTION = 'VirtualBMC'
 CONF = vbmc_config.get_config()
 
 
+def vbmc_runner(bmc_config):
+    # The manager process installs a signal handler for SIGTERM to
+    # propagate it to children. Return to the default handler.
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
+
+    show_passwords = CONF['default']['show_passwords']
+
+    if show_passwords:
+        show_options = bmc_config
+    else:
+        show_options = utils.mask_dict_password(bmc_config)
+
+    try:
+        vbmc = VirtualBMC(**bmc_config)
+
+    except Exception as ex:
+        LOG.exception(
+            'Error running vBMC with configuration '
+            '%(opts)s: %(error)s', {'opts': show_options,
+                                    'error': ex}
+        )
+        return
+
+    try:
+        vbmc.listen(timeout=CONF['ipmi']['session_timeout'])
+
+    except Exception as ex:
+        LOG.exception(
+            'Shutdown vBMC for domain %(domain)s, cause '
+            '%(error)s', {'domain': show_options['domain_name'], 'error': ex}
+        )
+        return
+
+
 class VirtualBMCManager(object):
 
     VBMC_OPTIONS = ['username', 'password', 'address', 'port',
@@ -112,40 +146,6 @@ class VirtualBMCManager(object):
         enabled but dead instances, kills non-configured
         but alive ones.
         """
-
-        def vbmc_runner(bmc_config):
-            # The manager process installs a signal handler for SIGTERM to
-            # propagate it to children. Return to the default handler.
-            signal.signal(signal.SIGTERM, signal.SIG_DFL)
-
-            show_passwords = CONF['default']['show_passwords']
-
-            if show_passwords:
-                show_options = bmc_config
-            else:
-                show_options = utils.mask_dict_password(bmc_config)
-
-            try:
-                vbmc = VirtualBMC(**bmc_config)
-
-            except Exception as ex:
-                LOG.exception(
-                    'Error running vBMC with configuration '
-                    '%(opts)s: %(error)s', {'opts': show_options,
-                                            'error': ex}
-                )
-                return
-
-            try:
-                vbmc.listen(timeout=CONF['ipmi']['session_timeout'])
-
-            except Exception as ex:
-                LOG.exception(
-                    'Shutdown vBMC for domain %(domain)s, cause '
-                    '%(error)s', {'domain': show_options['domain_name'],
-                                  'error': ex}
-                )
-                return
 
         for domain_name in os.listdir(self.config_dir):
             if not os.path.isdir(
