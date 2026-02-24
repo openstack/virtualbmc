@@ -284,3 +284,9 @@ class VirtualBMCManagerTestCase(base.TestCase):
     def test_show(self, mock__show):
         self.manager.show(self.domain0)
         mock__show.assert_called_once_with(self.domain0)
+
+    def test_vbmc_runner_is_picklable(self):
+        import pickle
+        payload = pickle.dumps(manager.vbmc_runner)
+        loaded = pickle.loads(payload)
+        self.assertIs(manager.vbmc_runner, loaded)
