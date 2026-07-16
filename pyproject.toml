@@ -1,0 +1,54 @@
+[build-system]
+requires = ["pbr>=6.1.1"]
+build-backend = "pbr.build"
+
+[project]
+name = "virtualbmc"
+description = "Create virtual BMCs for controlling virtual instances via IPMI"
+authors = [
+    {name = "OpenStack", email = "openstack-discuss@lists.openstack.org"},
+]
+readme = {file = "README.rst", content-type = "text/x-rst"}
+license = "Apache-2.0"
+dynamic = ["version", "dependencies"]
+requires-python = ">=3.10"
+classifiers = [
+    "Environment :: OpenStack",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+[project.urls]
+Homepage = "https://docs.openstack.org/virtualbmc"
+Repository = "https://opendev.org/openstack/virtualbmc"
+Bugs = "https://bugs.launchpad.net/virtualbmc"
+
+[project.scripts]
+vbmc = "virtualbmc.cmd.vbmc:main"
+vbmcd = "virtualbmc.cmd.vbmcd:main"
+
+[project.entry-points."virtualbmc"]
+add = "virtualbmc.cmd.vbmc:AddCommand"
+delete = "virtualbmc.cmd.vbmc:DeleteCommand"
+start = "virtualbmc.cmd.vbmc:StartCommand"
+stop = "virtualbmc.cmd.vbmc:StopCommand"
+list = "virtualbmc.cmd.vbmc:ListCommand"
+show = "virtualbmc.cmd.vbmc:ShowCommand"
+
+[tool.setuptools.packages.find]
+include = ["virtualbmc*"]
+
+[tool.codespell]
+quiet-level = 4
+# Words to ignore:
+# cna: Intel CNA card
+ignore-words-list = "cna"
