@@ -41,6 +41,17 @@ Supported IPMI commands
   # Get the current boot device
   ipmitool -I lanplus -U admin -P password -H 127.0.0.1 chassis bootparam get 5
 
+  # Connect to the VM's default serial console
+  ipmitool -I lanplus -C 3 -U admin -P password -H 127.0.0.1 sol activate
+
+Serial-over-LAN
+~~~~~~~~~~~~~~~
+
+SOL bridges one authenticated IPMI client to the libvirt domain's default
+console. It supports activation while powered off and reconnects the stream
+after VM power cycles. See ``doc/source/user/sol.rst`` for prerequisites
+and limitations.
+
 Project resources
 ~~~~~~~~~~~~~~~~~
 
@@ -51,4 +62,3 @@ Project resources
 
 For information on how to contribute to VirtualBMC, see
 https://docs.openstack.org/virtualbmc/latest/contributor
-

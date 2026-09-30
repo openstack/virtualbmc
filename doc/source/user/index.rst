@@ -136,6 +136,14 @@ virtual BMC to control the libvirt domain. For example:
 
     $ ipmitool -I lanplus -U admin -P password -H 127.0.0.1 -p 6230 chassis bootparam get 5
 
+Serial-over-LAN
+---------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sol
+
 Backward compatible behaviour
 -----------------------------
 

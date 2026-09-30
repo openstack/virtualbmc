@@ -1,0 +1,8 @@
+features:
+  - |
+    Adds Serial-over-LAN support for ``ipmitool sol activate`` and
+    ``ipmitool sol deactivate``, including Ironic's ``ipmitool-socat``
+    console interface. One client can access the libvirt domain's default
+    console at a time. Sessions can be activated while a VM is powered off,
+    and the console stream reconnects after VM power cycles. The guest must
+    be configured to use its serial console.

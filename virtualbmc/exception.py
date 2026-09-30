@@ -31,6 +31,10 @@ class DomainNotFound(VirtualBMCError):
     message = 'No domain with matching name %(domain)s was found'
 
 
+class ConsoleNotFound(VirtualBMCError):
+    message = 'Domain %(domain)s has no serial console'
+
+
 class LibvirtConnectionOpenError(VirtualBMCError):
     message = ('Fail to establish a connection with libvirt URI "%(uri)s". '
                'Error: %(error)s')
