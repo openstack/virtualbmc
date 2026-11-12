@@ -199,6 +199,15 @@ class VirtualBMCManager(object):
                 if instance:
                     if instance.is_alive():
                         instance.terminate()
+                        instance.join(timeout=5)
+                        if instance.is_alive():
+                            LOG.warning(
+                                'vBMC instance %(domain)s did not terminate '
+                                'after SIGTERM; sending SIGKILL',
+                                {'domain': domain_name}
+                            )
+                            instance.kill()
+                            instance.join()
                         LOG.info(
                             'Terminated vBMC instance for domain '
                             '%(domain)s', {'domain': domain_name}
